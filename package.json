@@ -1,6 +1,6 @@
 {
   "name": "@youniverse-center/ecsjs",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "The Entity Component System for JavaScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,5 +15,10 @@
   "devDependencies": {
     "typescript": "^4.1.5",
     "vuepress": "^1.8.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youniverse-center/ecsjs"
+  },
+  "homepage": "https://youniverse-center.github.io/ecsjs/"
 }
