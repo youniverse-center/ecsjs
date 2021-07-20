@@ -1,16 +1,16 @@
-import Entity from './Entity';
-export declare type EntityListener = <Components>(entity: Entity<Components>) => void;
-export declare type ComponentListener<Components, T extends keyof Components> = (entity: Entity<Components>, name: T, component: Components[T]) => void;
-export declare type RegistryListenerTypes<Components> = {
-    componentAdded: ComponentListener<Components, keyof Components>;
-    componentRemoved: ComponentListener<Components, keyof Components>;
+import type Entity from './Entity';
+export declare type EntityListener = <C>(entity: Entity<C>) => void;
+export declare type ComponentListener<C, T extends keyof C> = (entity: Entity<C>, name: T, component: C[T]) => void;
+export declare type RegistryListenerTypes<C> = {
+    componentAdded: ComponentListener<C, keyof C>;
+    componentRemoved: ComponentListener<C, keyof C>;
     entityCreated: EntityListener;
     entityRemoved: EntityListener;
 };
-export declare type RegistryListener<Components, T extends keyof RegistryListenerTypes<Components>> = RegistryListenerTypes<Components>[T];
-export declare type RegistryListeners<Components> = {
-    componentAdded: ComponentListener<Components, keyof Components>[];
-    componentRemoved: ComponentListener<Components, keyof Components>[];
+export declare type RegistryListener<C, T extends keyof RegistryListenerTypes<C>> = RegistryListenerTypes<C>[T];
+export declare type RegistryListeners<C> = {
+    componentAdded: ComponentListener<C, keyof C>[];
+    componentRemoved: ComponentListener<C, keyof C>[];
     entityCreated: EntityListener[];
     entityRemoved: EntityListener[];
 };

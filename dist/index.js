@@ -14,5 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createRegistry = void 0;
     const Registry_1 = __importDefault(require("./Registry"));
+    // eslint-disable-next-line import/prefer-default-export
     exports.createRegistry = Registry_1.default;
 });

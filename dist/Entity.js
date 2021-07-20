@@ -10,24 +10,24 @@
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class Entity {
-        constructor(_id, registry) {
-            this._id = _id;
+        constructor(entityId, registry) {
+            this.entityId = entityId;
             this.registry = registry;
         }
         get id() {
-            return this._id;
+            return this.entityId;
         }
         hasComponent(name) {
-            return this.registry.hasComponent(this._id, name);
+            return this.registry.hasComponent(this.entityId, name);
         }
         addComponent(name, component) {
-            return this.registry.assignComponent(this._id, name, component);
+            return this.registry.assignComponent(this.entityId, name, component);
         }
         removeComponent(name) {
-            this.registry.removeComponent(this._id, name);
+            this.registry.removeComponent(this.entityId, name);
         }
         getComponent(name) {
-            return this.registry.getComponent(this._id, name);
+            return this.registry.getComponent(this.entityId, name);
         }
     }
     exports.default = Entity;

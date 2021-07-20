@@ -13,27 +13,27 @@
         constructor(groupAll, groupAny) {
             this.groupAll = groupAll;
             this.groupAny = groupAny;
-            this._result = new Map();
+            this.resultMap = new Map();
         }
         addComponent(entity, componentName, component) {
-            let entityMap = this._result.get(entity);
+            let entityMap = this.resultMap.get(entity);
             if (!entityMap) {
                 entityMap = new Map();
-                this._result.set(entity, entityMap);
+                this.resultMap.set(entity, entityMap);
             }
             entityMap.set(componentName, component);
         }
         get result() {
             const r = [];
-            this._result.forEach((components, entity) => {
+            this.resultMap.forEach((components, entity) => {
                 r.push({
-                    entity: entity,
+                    entity,
                     component(name) {
                         return components.get(name);
                     },
                     hasComponent(name) {
                         return components.has(name);
-                    }
+                    },
                 });
             });
             return r;

@@ -1,1 +1,1 @@
-export declare const createRegistry: <Components>() => import("./Registry").Registry<Components>;
+export declare const createRegistry: <C>() => import("./Registry").Registry<C>;

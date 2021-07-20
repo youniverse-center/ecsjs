@@ -1,31 +1,27 @@
-import { Registry } from './Registry'
+import type { Registry } from './Registry';
 
-export type EntityID = number
+export type EntityID = number;
 
 export default class Entity<C> {
-    constructor(private _id: EntityID, private registry: Registry<C>) {}
+  constructor(private entityId: EntityID, private registry: Registry<C>) {}
 
-    public get id() {
-        return this._id
-    }
+  public get id() {
+    return this.entityId;
+  }
 
-    public hasComponent<T extends keyof C>(name: T): boolean
-    {
-        return this.registry.hasComponent(this._id, name)
-    }
+  public hasComponent<T extends keyof C>(name: T): boolean {
+    return this.registry.hasComponent(this.entityId, name);
+  }
 
-    public addComponent<T extends keyof C>(name: T, component: C[T]): C[T]
-    {
-        return this.registry.assignComponent(this._id, name, component)
-    }
+  public addComponent<T extends keyof C>(name: T, component: C[T]): C[T] {
+    return this.registry.assignComponent(this.entityId, name, component);
+  }
 
-    public removeComponent(name: keyof C): void
-    {
-        this.registry.removeComponent(this._id, name)
-    }
+  public removeComponent(name: keyof C): void {
+    this.registry.removeComponent(this.entityId, name);
+  }
 
-    public getComponent<T extends keyof C>(name: T): C[T]
-    {
-        return this.registry.getComponent(this._id, name)
-    }
+  public getComponent<T extends keyof C>(name: T): C[T] {
+    return this.registry.getComponent(this.entityId, name);
+  }
 }

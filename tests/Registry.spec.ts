@@ -1,4 +1,4 @@
-import createRegistry, { Registry } from "../src/Registry";
+import createRegistry, { Registry } from '../src/Registry';
 
 type Components = {
   Tag: {
@@ -19,12 +19,12 @@ describe('Registry', () => {
 
   beforeEach(() => {
     registry = createRegistry<Components>();
-  })
-  
+  });
+
   test('creates entities with sequential ids', () => {
     const entity1 = registry.createEntity();
     const entity2 = registry.createEntity();
-    expect(entity1.id).toBe(1)
-    expect(entity2.id).toBe(2)
-  })
-})
+    expect(entity1.id).toBe(1);
+    expect(entity2.id).toBe(2);
+  });
+});
