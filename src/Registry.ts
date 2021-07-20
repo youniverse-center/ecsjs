@@ -2,30 +2,30 @@ import Entity, { EntityID } from './Entity';
 import View, { ComponentGroup } from './View';
 import { RegistryListeners, RegistryListenerTypes } from './RegistryListeners';
 
-export class Registry<Components = {}> {
-    private entityComponents = new Map<EntityID, Set<keyof Components>>();
+export class Registry<C = {}> {
+    private entityComponents = new Map<EntityID, Set<keyof C>>();
 
     private components = new Map();
 
     private nextEntity: EntityID = 1;
 
-    private listeners: RegistryListeners<Components> = {
+    private listeners: RegistryListeners<C> = {
         componentAdded: [],
         componentRemoved: [],
         entityCreated: [],
         entityRemoved: []
     }
 
-    private getComponentMap<T extends keyof Components>(componentName: T): Map<EntityID, Components[T]> 
+    private getComponentMap<T extends keyof C>(componentName: T): Map<EntityID, C[T]> 
     {
         if (!this.components.has(componentName)) {
-            this.components.set(componentName, new Map<EntityID, Components[T]>())
+            this.components.set(componentName, new Map<EntityID, C[T]>())
         }
     
         return this.components.get(componentName)
     }
 
-    public createEntity(): Entity<Components>
+    public createEntity(): Entity<C>
     {
         const entity = new Entity(this.nextEntity++, this)
         this.entityComponents.set(entity.id, new Set())
@@ -37,12 +37,12 @@ export class Registry<Components = {}> {
         return entity
     }
 
-    public hasComponent(entity: EntityID, name: keyof Components): boolean
+    public hasComponent(entity: EntityID, name: keyof C): boolean
     {
         return this.getComponentMap(name).has(entity)
     }
 
-    public assignComponent<T extends keyof Components>(entity: EntityID, name: T, component: Components[T]): Components[T]
+    public assignComponent<T extends keyof C>(entity: EntityID, name: T, component: C[T]): C[T]
     {
         let componentList = this.entityComponents.get(entity)
         if (componentList) {
@@ -57,7 +57,7 @@ export class Registry<Components = {}> {
         return component
     }
 
-    public removeComponent(entity: EntityID, name: keyof Components): void
+    public removeComponent(entity: EntityID, name: keyof C): void
     {
         let componentList = this.entityComponents.get(entity)
         if (componentList) {
@@ -71,7 +71,7 @@ export class Registry<Components = {}> {
         this.getComponentMap(name).delete(entity)
     }
 
-    public getComponent<T extends keyof Components>(entityId: EntityID, name: T): Components[T]
+    public getComponent<T extends keyof C>(entityId: EntityID, name: T): C[T]
     {
         const component = this.getComponentMap(name).get(entityId)
         if (!component) {
@@ -98,7 +98,7 @@ export class Registry<Components = {}> {
         this.entityComponents.delete(entity)
     }
 
-    public getView(groupAll: ComponentGroup<Components>, groupAny: ComponentGroup<Components> = []): View<Components>
+    public getView(groupAll: ComponentGroup<C>, groupAny: ComponentGroup<C> = []): View<C>
     {
         const view = new View(groupAll, groupAny)
         this.entityComponents.forEach((c, entityID) => {
@@ -121,14 +121,14 @@ export class Registry<Components = {}> {
         return view
     }
 
-    public registerListener<T extends keyof RegistryListenerTypes<Components>>(name: T, listener: RegistryListenerTypes<Components>[T]): void
+    public registerListener<T extends keyof RegistryListenerTypes<C>>(name: T, listener: RegistryListenerTypes<C>[T]): void
     {
-        (this.listeners[name] as RegistryListenerTypes<Components>[T][]).push(listener)
+        (this.listeners[name] as RegistryListenerTypes<C>[T][]).push(listener)
     }
 }
 
-const createRegistry = <Components>(): Registry<Components> => {
-    return new Registry<Components>();
+const createRegistry = <C>(): Registry<C> => {
+    return new Registry<C>();
 }
 
 export default createRegistry;

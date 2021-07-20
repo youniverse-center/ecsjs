@@ -1,22 +1,22 @@
 import Entity from './Entity'
 
-export type ComponentGroup<Components> = (keyof Components)[]
+export type ComponentGroup<C> = (keyof C)[]
 
-type ViewResult<Components> = {
-    entity: Entity<Components>,
-    component: <T extends keyof Components>(name: T) => Components[T]
-    hasComponent: (name: keyof Components) => boolean
+type ViewResult<C> = {
+    entity: Entity<C>,
+    component: <T extends keyof C>(name: T) => C[T]
+    hasComponent: (name: keyof C) => boolean
 }
 
-export default class View<Components> {
-    private _result = new Map<Entity<Components>, Map<keyof Components, Components[keyof Components]>>()
-    constructor(public groupAll: ComponentGroup<Components>, public groupAny: ComponentGroup<Components>) {}
+export default class View<C> {
+    private _result = new Map<Entity<C>, Map<keyof C, C[keyof C]>>()
+    constructor(public groupAll: ComponentGroup<C>, public groupAny: ComponentGroup<C>) {}
 
-    public addComponent<T extends keyof Components>(entity: Entity<Components>, componentName: T, component: Components[T])
+    public addComponent<T extends keyof C>(entity: Entity<C>, componentName: T, component: C[T])
     {
         let entityMap = this._result.get(entity)
         if (!entityMap) {
-            entityMap = new Map<T, Components[T]>()
+            entityMap = new Map<T, C[T]>()
             this._result.set(entity, entityMap)
         }
 
@@ -24,14 +24,14 @@ export default class View<Components> {
     }
 
     public get result() {
-        const r: ViewResult<Components>[] = [];
-        this._result.forEach((components, entity: Entity<Components>) => {
+        const r: ViewResult<C>[] = [];
+        this._result.forEach((components, entity: Entity<C>) => {
             r.push({
                 entity: entity,
-                component<T extends keyof Components>(name: T): Components[T] {
-                    return components.get(name) as Components[T]
+                component<T extends keyof C>(name: T): C[T] {
+                    return components.get(name) as C[T]
                 },
-                hasComponent(name: keyof Components): boolean {
+                hasComponent(name: keyof C): boolean {
                     return components.has(name)
                 }
             })
