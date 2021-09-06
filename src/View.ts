@@ -9,8 +9,7 @@ type ViewResult<C> = {
 };
 
 export default class View<C> {
-  private resultMap = new Map<Entity<C>, Map<keyof C, C[keyof C]>>()
-  ;
+  private resultMap = new Map<Entity<C>, Map<keyof C, C[keyof C]>>();
 
   constructor(public groupAll: ComponentGroup<C>, public groupAny: ComponentGroup<C>) {}
 

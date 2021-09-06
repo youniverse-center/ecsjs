@@ -6,14 +6,16 @@
       "noImplicitReturns": true,
       "strict": true,
       "noUnusedLocals": true,
-      "module": "UMD",
+      "module": "ESNext",
       "target": "ESNext",
       "allowJs": false,
+      "rootDir": "src",
       "sourceMap": false,
       "esModuleInterop": true,
       "baseUrl": ".",
       "moduleResolution": "node",
-      "declaration": true
+      "declaration": true,
+      "declarationDir": "@types"
   },
   "include": [
     "./src/**/*.ts"
