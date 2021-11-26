@@ -33,6 +33,7 @@ declare type RegistryListenerTypes<C> = {
     entityCreated: EntityListener;
     entityRemoved: EntityListener;
 };
+declare type RegistryListener<C, T extends keyof RegistryListenerTypes<C>> = RegistryListenerTypes<C>[T];
 
 declare class Registry<C = {}> {
     private entityComponents;
@@ -52,4 +53,4 @@ declare class Registry<C = {}> {
 
 declare const createRegistry: <C>() => Registry<C>;
 
-export { createRegistry };
+export { ComponentGroup, ComponentListener, Entity, EntityListener, Registry, RegistryListener, View, createRegistry };
