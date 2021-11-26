@@ -12,6 +12,9 @@ export default defineConfig([
     }), typescript({
       tsconfig: 'tsconfig.build.json',
       useTsconfigDeclarationDir: true
+    }), babel({
+      babelHelpers: 'bundled',
+      extensions: ['.js', '.ts']
     })],
     input: 'src/index.ts',
     output: [...(['esm', 'cjs'].map((format) => ({
@@ -51,7 +54,7 @@ export default defineConfig([
     input: '@types/index.d.ts',
     output: [{
       file: 'dist/yc-ecs.d.ts',
-      format: 'es',      
+      format: 'es',
     }],
   }
 ]);

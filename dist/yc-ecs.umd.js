@@ -26,28 +26,9 @@
     return Constructor;
   }
 
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
-  }
-
   var Entity = /*#__PURE__*/function () {
     function Entity(entityId, registry) {
       _classCallCheck(this, Entity);
-
-      _defineProperty(this, "entityId", void 0);
-
-      _defineProperty(this, "registry", void 0);
 
       this.entityId = entityId;
       this.registry = registry;
@@ -87,12 +68,7 @@
     function View(groupAll, groupAny) {
       _classCallCheck(this, View);
 
-      _defineProperty(this, "groupAll", void 0);
-
-      _defineProperty(this, "groupAny", void 0);
-
-      _defineProperty(this, "resultMap", new Map());
-
+      this.resultMap = new Map();
       this.groupAll = groupAll;
       this.groupAny = groupAny;
     }
@@ -135,18 +111,15 @@
     function Registry() {
       _classCallCheck(this, Registry);
 
-      _defineProperty(this, "entityComponents", new Map());
-
-      _defineProperty(this, "components", new Map());
-
-      _defineProperty(this, "nextEntity", 1);
-
-      _defineProperty(this, "listeners", {
+      this.entityComponents = new Map();
+      this.components = new Map();
+      this.nextEntity = 1;
+      this.listeners = {
         componentAdded: [],
         componentRemoved: [],
         entityCreated: [],
         entityRemoved: []
-      });
+      };
     }
 
     _createClass(Registry, [{
