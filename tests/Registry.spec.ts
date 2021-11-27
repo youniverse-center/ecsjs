@@ -27,4 +27,70 @@ describe('Registry', () => {
     expect(entity1.id).toBe(1);
     expect(entity2.id).toBe(2);
   });
+
+  test('removes component added listener', () => {
+    let i = 0;
+    const listener = () => {
+      i += 1;
+    };
+
+    registry.onComponentAdded(listener);
+    const entity = registry.createEntity();
+    entity.addComponent('Tag', { name: 'tag' });
+    registry.offComponentAdded(listener);
+    const entity2 = registry.createEntity();
+    entity2.addComponent('Tag', { name: 'tag' });
+
+    expect(i).toBe(1);
+  });
+
+  test('removes component removed listener', () => {
+    let i = 0;
+    const listener = () => {
+      i += 1;
+    };
+
+    registry.onComponentRemoved(listener);
+    const entity = registry.createEntity();
+    entity.addComponent('Tag', { name: 'tag' });
+    const entity2 = registry.createEntity();
+    entity2.addComponent('Tag', { name: 'tag' });
+
+    entity.removeComponent('Tag');
+    registry.offComponentRemoved(listener);
+    entity2.removeComponent('Tag');
+
+    expect(i).toBe(1);
+  });
+
+  test('removes entity created listener', () => {
+    let i = 0;
+    const listener = () => {
+      i += 1;
+    };
+
+    registry.onEntityCreated(listener);
+    registry.createEntity();
+    registry.offEntityCreated(listener);
+    registry.createEntity();
+
+    expect(i).toBe(1);
+  });
+
+  test('removes entity removed listener', () => {
+    let i = 0;
+    const listener = () => {
+      i += 1;
+    };
+
+    registry.onEntityRemoved(listener);
+    const e1 = registry.createEntity();
+    const e2 = registry.createEntity();
+
+    registry.removeEntity(e1.id);
+    registry.offEntityRemoved(listener);
+    registry.removeEntity(e2.id);
+
+    expect(i).toBe(1);
+  });
 });

@@ -15,8 +15,14 @@ export type RegistryListener<C, T extends keyof RegistryListenerTypes<C>> =
   RegistryListenerTypes<C>[T];
 
 export type RegistryListeners<C> = {
-  componentAdded: ComponentListener<C, keyof C>[],
-  componentRemoved: ComponentListener<C, keyof C>[],
+  componentAdded: {
+    filter: (keyof C)[],
+    handler: ComponentListener<C, keyof C>,
+  }[],
+  componentRemoved: {
+    filter: (keyof C)[],
+    handler: ComponentListener<C, keyof C>,
+  }[],
   entityCreated: EntityListener[],
   entityRemoved: EntityListener[]
 };

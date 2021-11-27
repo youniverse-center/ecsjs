@@ -1,6 +1,9 @@
 import Entity, { EntityID } from './Entity';
 import View, { ComponentGroup } from './View';
-import type { RegistryListeners, RegistryListenerTypes } from './RegistryListeners';
+import type { RegistryListeners, ComponentListener } from './RegistryListeners';
+import { EntityListener } from 'src';
+
+const matchesFilter = <T>(name: T, filter: T[]): boolean => !filter.length || filter.includes(name);
 
 export class Registry<C = {}> {
   private entityComponents = new Map<EntityID, Set<keyof C>>();
@@ -47,9 +50,11 @@ export class Registry<C = {}> {
       this.getComponentMap(name).set(entity, component);
     }
 
-    this.listeners.componentAdded.forEach((listener) => {
-      listener(new Entity(entity, this), name, component);
-    });
+    this.listeners.componentAdded
+      .filter((listener) => matchesFilter(name, listener.filter))
+      .forEach((listener) => {
+        listener.handler(new Entity(entity, this), name, component);
+      });
 
     return component;
   }
@@ -58,9 +63,11 @@ export class Registry<C = {}> {
     const componentList = this.entityComponents.get(entity);
     if (componentList) {
       const component = this.getComponent(entity, name);
-      this.listeners.componentRemoved.forEach((listener) => {
-        listener(new Entity(entity, this), name, component);
-      });
+      this.listeners.componentRemoved
+        .filter((listener) => matchesFilter(name, listener.filter))
+        .forEach((listener) => {
+          listener.handler(new Entity(entity, this), name, component);
+        });
 
       componentList.delete(name);
     }
@@ -115,11 +122,48 @@ export class Registry<C = {}> {
     return view;
   }
 
-  public registerListener<T extends keyof RegistryListenerTypes<C>>(
-    name: T,
-    listener: RegistryListenerTypes<C>[T],
+  public onComponentAdded(
+    listener: ComponentListener<C, keyof C>,
+    filter: (keyof C)[] = [],
   ): void {
-    (this.listeners[name] as RegistryListenerTypes<C>[T][]).push(listener);
+    this.listeners.componentAdded.push({
+      filter: filter,
+      handler: listener,
+    });
+  }
+
+  public offComponentAdded(listener: ComponentListener<C, keyof C>) {
+    this.listeners.componentAdded = this.listeners.componentRemoved.filter((l) => l.handler !== listener);
+  }
+
+  public onComponentRemoved(
+    listener: ComponentListener<C, keyof C>,
+    filter: (keyof C)[] = [],
+  ) {
+    this.listeners.componentRemoved.push({
+      filter: filter,
+      handler: listener,
+    });
+  }
+
+  public offComponentRemoved(listener: ComponentListener<C, keyof C>) {
+    this.listeners.componentRemoved = this.listeners.componentRemoved.filter((l) => l.handler !== listener);
+  }
+
+  public onEntityCreated(listener: EntityListener): void {
+    this.listeners.entityCreated.push(listener);
+  }
+
+  public offEntityCreated(handler: EntityListener) {
+    this.listeners.entityCreated = this.listeners.entityCreated.filter((listener) => listener !== handler);
+  }
+
+  public onEntityRemoved(listener: EntityListener): void {
+    this.listeners.entityRemoved.push(listener);
+  }
+
+  public offEntityRemoved(handler: EntityListener) {
+    this.listeners.entityRemoved = this.listeners.entityRemoved.filter((listener) => listener !== handler);
   }
 }
 

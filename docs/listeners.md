@@ -9,6 +9,8 @@ There are four self explanatory listeners:
 - `entityCreated`
 - `entityRemoved`
 
+You can register listeners with `on*` methods on the registry and unregister with `off*` methods.
+
 The `component*` listeners accept listeners like:
 
 ```ts
@@ -35,22 +37,22 @@ import { createRegistry } from '@youniverse-center/ecsjs';
 
 const reg = createRegistry<Components>();
 
-reg.registerListener('entityCreated', (entity) => {
+reg.onEntityCreated((entity) => {
   console.log(`Entity ${entity.id} created.`);
 });
 
-reg.registerListener('entityRemoved', (entity) => {
+reg.onEntityRemoved((entity) => {
   console.log(`Entity ${entity.id} removed`);
 });
 
-reg.registerListener('componentAdded', (entity, componentName, component) => {
+reg.onComponentAdded((entity, componentName, component) => {
   console.log(
     `Component "${componentName}" added to entity ${entity.id}`,
     component
   );
-});
+}, []);
 
-reg.registerListener('componentRemoved', (entity, componentName, component) => {
+reg.onComponentRemoved((entity, componentName, component) => {
   console.log(
     `Component "${componentName}" removed from entity ${entity.id}`,
     component
