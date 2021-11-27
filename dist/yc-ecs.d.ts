@@ -1,3 +1,5 @@
+import { EntityListener as EntityListener$1 } from 'src';
+
 declare type EntityID = number;
 declare class Entity<C> {
     private entityId;
@@ -48,7 +50,14 @@ declare class Registry<C = {}> {
     getComponent<T extends keyof C>(entityId: EntityID, name: T): C[T];
     removeEntity(entity: EntityID): void;
     getView(groupAll: ComponentGroup<C>, groupAny?: ComponentGroup<C>): View<C>;
-    registerListener<T extends keyof RegistryListenerTypes<C>>(name: T, listener: RegistryListenerTypes<C>[T]): void;
+    onComponentAdded(listener: ComponentListener<C, keyof C>, filter?: (keyof C)[]): void;
+    offComponentAdded(listener: ComponentListener<C, keyof C>): void;
+    onComponentRemoved(listener: ComponentListener<C, keyof C>, filter?: (keyof C)[]): void;
+    offComponentRemoved(listener: ComponentListener<C, keyof C>): void;
+    onEntityCreated(listener: EntityListener$1): void;
+    offEntityCreated(handler: EntityListener$1): void;
+    onEntityRemoved(listener: EntityListener$1): void;
+    offEntityRemoved(handler: EntityListener$1): void;
 }
 
 declare const createRegistry: <C>() => Registry<C>;

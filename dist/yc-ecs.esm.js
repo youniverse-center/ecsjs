@@ -101,6 +101,10 @@ var View = /*#__PURE__*/function () {
   return View;
 }();
 
+var matchesFilter = function matchesFilter(name, filter) {
+  return !filter.length || filter.includes(name);
+};
+
 var Registry = /*#__PURE__*/function () {
   function Registry() {
     _classCallCheck(this, Registry);
@@ -153,8 +157,10 @@ var Registry = /*#__PURE__*/function () {
         this.getComponentMap(name).set(entity, component);
       }
 
-      this.listeners.componentAdded.forEach(function (listener) {
-        listener(new Entity(entity, _this), name, component);
+      this.listeners.componentAdded.filter(function (listener) {
+        return matchesFilter(name, listener.filter);
+      }).forEach(function (listener) {
+        listener.handler(new Entity(entity, _this), name, component);
       });
       return component;
     }
@@ -167,8 +173,10 @@ var Registry = /*#__PURE__*/function () {
 
       if (componentList) {
         var component = this.getComponent(entity, name);
-        this.listeners.componentRemoved.forEach(function (listener) {
-          listener(new Entity(entity, _this2), name, component);
+        this.listeners.componentRemoved.filter(function (listener) {
+          return matchesFilter(name, listener.filter);
+        }).forEach(function (listener) {
+          listener.handler(new Entity(entity, _this2), name, component);
         });
         componentList["delete"](name);
       }
@@ -237,9 +245,60 @@ var Registry = /*#__PURE__*/function () {
       return view;
     }
   }, {
-    key: "registerListener",
-    value: function registerListener(name, listener) {
-      this.listeners[name].push(listener);
+    key: "onComponentAdded",
+    value: function onComponentAdded(listener) {
+      var filter = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+      this.listeners.componentAdded.push({
+        filter: filter,
+        handler: listener
+      });
+    }
+  }, {
+    key: "offComponentAdded",
+    value: function offComponentAdded(listener) {
+      this.listeners.componentAdded = this.listeners.componentRemoved.filter(function (l) {
+        return l.handler !== listener;
+      });
+    }
+  }, {
+    key: "onComponentRemoved",
+    value: function onComponentRemoved(listener) {
+      var filter = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+      this.listeners.componentRemoved.push({
+        filter: filter,
+        handler: listener
+      });
+    }
+  }, {
+    key: "offComponentRemoved",
+    value: function offComponentRemoved(listener) {
+      this.listeners.componentRemoved = this.listeners.componentRemoved.filter(function (l) {
+        return l.handler !== listener;
+      });
+    }
+  }, {
+    key: "onEntityCreated",
+    value: function onEntityCreated(listener) {
+      this.listeners.entityCreated.push(listener);
+    }
+  }, {
+    key: "offEntityCreated",
+    value: function offEntityCreated(handler) {
+      this.listeners.entityCreated = this.listeners.entityCreated.filter(function (listener) {
+        return listener !== handler;
+      });
+    }
+  }, {
+    key: "onEntityRemoved",
+    value: function onEntityRemoved(listener) {
+      this.listeners.entityRemoved.push(listener);
+    }
+  }, {
+    key: "offEntityRemoved",
+    value: function offEntityRemoved(handler) {
+      this.listeners.entityRemoved = this.listeners.entityRemoved.filter(function (listener) {
+        return listener !== handler;
+      });
     }
   }]);
 
