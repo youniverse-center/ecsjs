@@ -93,4 +93,19 @@ describe('Registry', () => {
 
     expect(i).toBe(1);
   });
+
+  test('filters component added listener by component name', () => {
+    let i = 0;
+    const listener = () => {
+      i += 1;
+    };
+
+    registry.onComponentAdded(listener, ['Tag', 'Name']);
+    const entity = registry.createEntity();
+    entity.addComponent('Tag', { name: 'tag' });
+    entity.addComponent('Name', { value: 'name' });
+    entity.addComponent('Position', { x: 0, y: 0, z: 0 });
+
+    expect(i).toBe(2);
+  });
 });
