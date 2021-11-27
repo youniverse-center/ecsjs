@@ -40,6 +40,11 @@
         return this.entityId;
       }
     }, {
+      key: "components",
+      value: function components() {
+        return this.registry.getComponents(this.entityId);
+      }
+    }, {
       key: "hasComponent",
       value: function hasComponent(name) {
         return this.registry.hasComponent(this.entityId, name);
@@ -145,6 +150,22 @@
           listener(entity);
         });
         return entity;
+      }
+    }, {
+      key: "getEntity",
+      value: function getEntity(entity) {
+        return new Entity(entity, this);
+      }
+    }, {
+      key: "getComponents",
+      value: function getComponents(entity) {
+        var components = this.entityComponents.get(entity);
+
+        if (!components) {
+          return [];
+        }
+
+        return Array.from(components);
       }
     }, {
       key: "hasComponent",

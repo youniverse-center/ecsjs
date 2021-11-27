@@ -108,4 +108,17 @@ describe('Registry', () => {
 
     expect(i).toBe(2);
   });
+
+  test('entity returns component list', () => {
+    const entity = registry.createEntity();
+    entity.addComponent('Tag', { name: 'tag' });
+    entity.addComponent('Name', { value: 'name' });
+    entity.addComponent('Position', { x: 0, y: 0, z: 0 });
+    const actual = entity.components();
+    actual.sort();
+    const expected = ['Tag', 'Name', 'Position'];
+    expected.sort();
+
+    expect(actual).toStrictEqual(expected);
+  });
 });

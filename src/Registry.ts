@@ -39,6 +39,19 @@ export class Registry<C = {}> {
     return entity;
   }
 
+  public getEntity(entity: EntityID) {
+    return new Entity(entity, this);
+  }
+
+  public getComponents(entity: EntityID): (keyof C)[] {
+    const components = this.entityComponents.get(entity);
+    if (!components) {
+      return [];
+    }
+
+    return Array.from(components);
+  }
+
   public hasComponent(entity: EntityID, name: keyof C): boolean {
     return this.getComponentMap(name).has(entity);
   }

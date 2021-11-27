@@ -6,6 +6,7 @@ declare class Entity<C> {
     private registry;
     constructor(entityId: EntityID, registry: Registry<C>);
     get id(): number;
+    components(): (keyof C)[];
     hasComponent<T extends keyof C>(name: T): boolean;
     addComponent<T extends keyof C>(name: T, component: C[T]): C[T];
     removeComponent(name: keyof C): void;
@@ -44,6 +45,8 @@ declare class Registry<C = {}> {
     private listeners;
     private getComponentMap;
     createEntity(): Entity<C>;
+    getEntity(entity: EntityID): Entity<C>;
+    getComponents(entity: EntityID): (keyof C)[];
     hasComponent(entity: EntityID, name: keyof C): boolean;
     assignComponent<T extends keyof C>(entity: EntityID, name: T, component: C[T]): C[T];
     removeComponent(entity: EntityID, name: keyof C): void;

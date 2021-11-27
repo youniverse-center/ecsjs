@@ -9,6 +9,10 @@ export default class Entity<C> {
     return this.entityId;
   }
 
+  public components(): (keyof C)[] {
+    return this.registry.getComponents(this.entityId);
+  }
+
   public hasComponent<T extends keyof C>(name: T): boolean {
     return this.registry.hasComponent(this.entityId, name);
   }
