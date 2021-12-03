@@ -121,4 +121,13 @@ describe('Registry', () => {
 
     expect(actual).toStrictEqual(expected);
   });
+
+  test('returns all entities', () => {
+    const e1 = registry.createEntity();
+    const e2 = registry.createEntity();
+    const e3 = registry.createEntity();
+    registry.removeEntity(e2.id);
+
+    expect(registry.all().map((entity) => entity.id)).toStrictEqual([e1.id, e3.id]);
+  });
 });

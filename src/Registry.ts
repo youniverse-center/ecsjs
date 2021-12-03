@@ -135,6 +135,10 @@ export class Registry<C = {}> {
     return view;
   }
 
+  public all(): Entity<C>[] {
+    return Array.from(this.entityComponents.keys()).map((entityId) => new Entity(entityId, this));
+  }
+
   public onComponentAdded(
     listener: ComponentListener<C, keyof C>,
     filter: (keyof C)[] = [],
@@ -163,19 +167,19 @@ export class Registry<C = {}> {
     this.listeners.componentRemoved = this.listeners.componentRemoved.filter((l) => l.handler !== listener);
   }
 
-  public onEntityCreated(listener: EntityListener): void {
+  public onEntityCreated(listener: EntityListener<C>): void {
     this.listeners.entityCreated.push(listener);
   }
 
-  public offEntityCreated(handler: EntityListener) {
+  public offEntityCreated(handler: EntityListener<C>) {
     this.listeners.entityCreated = this.listeners.entityCreated.filter((listener) => listener !== handler);
   }
 
-  public onEntityRemoved(listener: EntityListener): void {
+  public onEntityRemoved(listener: EntityListener<C>): void {
     this.listeners.entityRemoved.push(listener);
   }
 
-  public offEntityRemoved(handler: EntityListener) {
+  public offEntityRemoved(handler: EntityListener<C>) {
     this.listeners.entityRemoved = this.listeners.entityRemoved.filter((listener) => listener !== handler);
   }
 }

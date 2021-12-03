@@ -272,6 +272,15 @@
         return view;
       }
     }, {
+      key: "all",
+      value: function all() {
+        var _this5 = this;
+
+        return Array.from(this.entityComponents.keys()).map(function (entityId) {
+          return new Entity(entityId, _this5);
+        });
+      }
+    }, {
       key: "onComponentAdded",
       value: function onComponentAdded(listener) {
         var filter = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];

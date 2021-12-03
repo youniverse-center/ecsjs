@@ -53,14 +53,15 @@ declare class Registry<C = {}> {
     getComponent<T extends keyof C>(entityId: EntityID, name: T): C[T];
     removeEntity(entity: EntityID): void;
     getView(groupAll: ComponentGroup<C>, groupAny?: ComponentGroup<C>): View<C>;
+    all(): Entity<C>[];
     onComponentAdded(listener: ComponentListener<C, keyof C>, filter?: (keyof C)[]): void;
     offComponentAdded(listener: ComponentListener<C, keyof C>): void;
     onComponentRemoved(listener: ComponentListener<C, keyof C>, filter?: (keyof C)[]): void;
     offComponentRemoved(listener: ComponentListener<C, keyof C>): void;
-    onEntityCreated(listener: EntityListener$1): void;
-    offEntityCreated(handler: EntityListener$1): void;
-    onEntityRemoved(listener: EntityListener$1): void;
-    offEntityRemoved(handler: EntityListener$1): void;
+    onEntityCreated(listener: EntityListener$1<C>): void;
+    offEntityCreated(handler: EntityListener$1<C>): void;
+    onEntityRemoved(listener: EntityListener$1<C>): void;
+    offEntityRemoved(handler: EntityListener$1<C>): void;
 }
 
 declare const createRegistry: <C>() => Registry<C>;
