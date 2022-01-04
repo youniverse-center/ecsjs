@@ -1,7 +1,6 @@
 import Entity, { EntityID } from './Entity';
 import View, { ComponentGroup } from './View';
-import type { RegistryListeners, ComponentListener } from './RegistryListeners';
-import { EntityListener } from 'src';
+import type { RegistryListeners, ComponentListener, EntityListener } from './RegistryListeners';
 
 const matchesFilter = <T>(name: T, filter: T[]): boolean => !filter.length || filter.includes(name);
 
