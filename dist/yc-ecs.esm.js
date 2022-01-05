@@ -89,6 +89,9 @@ class Registry {
         return entity;
     }
     getEntity(entity) {
+        if (!this.entityComponents.has(entity)) {
+            throw new Error(`Entity ${entity} not found`);
+        }
         return new Entity(entity, this);
     }
     getComponents(entity) {

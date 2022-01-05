@@ -222,6 +222,10 @@
     }, {
       key: "getEntity",
       value: function getEntity(entity) {
+        if (!this.entityComponents.has(entity)) {
+          throw new Error("Entity ".concat(entity, " not found"));
+        }
+
         return new Entity(entity, this);
       }
     }, {

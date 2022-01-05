@@ -189,4 +189,12 @@ describe('Registry', () => {
 
     expect(registry.all().map((entity) => entity.id)).toStrictEqual([e1.id, e3.id]);
   });
+
+  test('throws an error if entity does not exist when getting by id from registry', () => {
+    const getNotRegisteredEntity = () => {
+      registry.getEntity(123);
+    };
+
+    expect(getNotRegisteredEntity).toThrow('Entity 123 not found');
+  });
 });

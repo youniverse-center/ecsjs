@@ -1,6 +1,6 @@
 {
   "name": "@youniverse-center/ecsjs",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "The Entity Component System for JavaScript",
   "main": "dist/yc-ecs-transpiled.cjs.js",
   "module": "dist/yc-ecs-transpiled.esm.js",

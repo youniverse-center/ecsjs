@@ -51,6 +51,9 @@ export class Registry<C = {}> {
   }
 
   public getEntity(entity: EntityID) {
+    if (!this.entityComponents.has(entity)) {
+      throw new Error(`Entity ${entity} not found`);
+    }
     return new Entity(entity, this);
   }
 
