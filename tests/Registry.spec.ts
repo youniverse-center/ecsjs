@@ -28,6 +28,65 @@ describe('Registry', () => {
     expect(entity2.id).toBe(2);
   });
 
+  test('creates entity with components', () => {
+    const entity = registry.createEntity({
+      Name: {
+        value: 'Entity name',
+      },
+      Tag: {
+        name: 'Some tag',
+      },
+    });
+
+    expect(entity.components()).toStrictEqual(['Name', 'Tag']);
+  });
+
+  test('creates entity with specified component value', () => {
+    const entity = registry.createEntity({
+      Name: {
+        value: 'Some entity',
+      },
+    });
+
+    expect(entity.getComponent('Name').value).toBe('Some entity');
+  });
+
+  test('triggers component added listener when creating entity with component', () => {
+    let triggeredListener = false;
+    registry.onComponentAdded((entity, name, component) => {
+      triggeredListener = entity.id === 1 
+        && name === 'Name' 
+        && (component as Components['Name']).value === 'Some other entity';
+    });
+    
+    registry.createEntity({
+      Name: {
+        value: 'Some other entity',
+      },
+    });
+
+    expect(triggeredListener).toBe(true);    
+  });
+
+  test('triggers component added listener when creating entity with component after entity created listener', () => {
+    let entityCreatedTriggered = false;
+    let triggeredSecond = false;
+    registry.onComponentAdded(() => {
+      triggeredSecond = entityCreatedTriggered;
+    });
+    registry.onEntityCreated((entity) => {
+      entityCreatedTriggered = entity.id === 1;
+    });
+    
+    registry.createEntity({
+      Name: {
+        value: 'Some awesome entity',
+      },
+    });
+
+    expect(triggeredSecond).toBe(true);    
+  });
+
   test('removes component added listener', () => {
     let i = 0;
     const listener = () => {

@@ -79,13 +79,18 @@ class Registry {
         }
         return this.components.get(componentName);
     }
-    createEntity() {
+    createEntity(components = {}) {
         const entity = new Entity(this.nextEntity, this);
         this.nextEntity += 1;
         this.entityComponents.set(entity.id, new Set());
         this.listeners.entityCreated.forEach((listener) => {
             listener(entity);
         });
+        for (let componentName in components) {
+            if (Object.prototype.hasOwnProperty.call(components, componentName)) {
+                entity.addComponent(componentName, components[componentName]);
+            }
+        }
         return entity;
     }
     getEntity(entity) {

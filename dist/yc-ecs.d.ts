@@ -36,13 +36,16 @@ declare type RegistryListenerTypes<C> = {
 };
 declare type RegistryListener<C, T extends keyof RegistryListenerTypes<C>> = RegistryListenerTypes<C>[T];
 
+declare type CreateEntityOptions<C> = Partial<{
+    [K in keyof C]: C[K];
+}>;
 declare class Registry<C = {}> {
     private entityComponents;
     private components;
     private nextEntity;
     private listeners;
     private getComponentMap;
-    createEntity(): Entity<C>;
+    createEntity(components?: CreateEntityOptions<C>): Entity<C>;
     getEntity(entity: EntityID): Entity<C>;
     getComponents(entity: EntityID): (keyof C)[];
     hasComponent(entity: EntityID, name: keyof C): boolean;

@@ -4,6 +4,10 @@ import type { RegistryListeners, ComponentListener, EntityListener } from './Reg
 
 const matchesFilter = <T>(name: T, filter: T[]): boolean => !filter.length || filter.includes(name);
 
+type CreateEntityOptions<C> = Partial<{
+  [K in keyof C]: C[K]
+}>; 
+
 export class Registry<C = {}> {
   private entityComponents = new Map<EntityID, Set<keyof C>>();
 
@@ -26,7 +30,7 @@ export class Registry<C = {}> {
     return this.components.get(componentName);
   }
 
-  public createEntity(): Entity<C> {
+  public createEntity(components: CreateEntityOptions<C> = {}): Entity<C> {
     const entity = new Entity(this.nextEntity, this);
     this.nextEntity += 1;
     this.entityComponents.set(entity.id, new Set());
@@ -34,6 +38,12 @@ export class Registry<C = {}> {
     this.listeners.entityCreated.forEach((listener) => {
       listener(entity);
     });
+
+    for (let componentName in components) {
+      if (Object.prototype.hasOwnProperty.call(components, componentName)) {
+        entity.addComponent(componentName, components[componentName]!);
+      }
+    }
 
     return entity;
   }

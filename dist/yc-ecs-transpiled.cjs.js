@@ -141,12 +141,20 @@ var Registry = /*#__PURE__*/function () {
   }, {
     key: "createEntity",
     value: function createEntity() {
+      var components = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var entity = new Entity(this.nextEntity, this);
       this.nextEntity += 1;
       this.entityComponents.set(entity.id, new Set());
       this.listeners.entityCreated.forEach(function (listener) {
         listener(entity);
       });
+
+      for (var componentName in components) {
+        if (Object.prototype.hasOwnProperty.call(components, componentName)) {
+          entity.addComponent(componentName, components[componentName]);
+        }
+      }
+
       return entity;
     }
   }, {
