@@ -18,11 +18,13 @@ declare type ViewResult<C> = {
     hasComponent: (name: keyof C) => boolean;
 };
 declare class View<C> {
-    groupAll: ComponentGroup<C>;
-    groupAny: ComponentGroup<C>;
+    private groupAll;
+    private groupAny;
     private resultMap;
     constructor(groupAll: ComponentGroup<C>, groupAny: ComponentGroup<C>);
-    addComponent<T extends keyof C>(entity: Entity<C>, componentName: T, component: C[T]): void;
+    test(entity: Entity<C>): boolean;
+    addEntity(entity: Entity<C>): void;
+    hasEntity(entity: Entity<C>): boolean;
     get result(): ViewResult<C>[];
 }
 

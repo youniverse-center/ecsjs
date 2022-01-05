@@ -30,8 +30,20 @@
     return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
   }
 
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+  }
+
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+  }
+
   function _arrayWithHoles(arr) {
     if (Array.isArray(arr)) return arr;
+  }
+
+  function _iterableToArray(iter) {
+    if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
   }
 
   function _iterableToArrayLimit(arr, i) {
@@ -79,6 +91,10 @@
     for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
 
     return arr2;
+  }
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
   function _nonIterableRest() {
@@ -138,16 +154,29 @@
     }
 
     _createClass(View, [{
-      key: "addComponent",
-      value: function addComponent(entity, componentName, component) {
-        var entityMap = this.resultMap.get(entity);
-
-        if (!entityMap) {
-          entityMap = new Map();
-          this.resultMap.set(entity, entityMap);
-        }
-
-        entityMap.set(componentName, component);
+      key: "test",
+      value: function test(entity) {
+        var componentList = entity.components();
+        var matchedComponents = this.groupAll.filter(function (e) {
+          return componentList.includes(e);
+        });
+        return matchedComponents.length === this.groupAll.length;
+      }
+    }, {
+      key: "addEntity",
+      value: function addEntity(entity) {
+        var entityMap = new Map();
+        this.resultMap.set(entity, entityMap);
+        [].concat(_toConsumableArray(this.groupAll), _toConsumableArray(this.groupAny)).forEach(function (name) {
+          if (entity.hasComponent(name)) {
+            entityMap.set(name, entity.getComponent(name));
+          }
+        });
+      }
+    }, {
+      key: "hasEntity",
+      value: function hasEntity(entity) {
+        return this.resultMap.has(entity);
       }
     }, {
       key: "result",
@@ -251,11 +280,12 @@
 
         var componentList = this.entityComponents.get(entity);
 
-        if (componentList) {
-          componentList.add(name);
-          this.getComponentMap(name).set(entity, component);
+        if (!componentList) {
+          throw new Error("Entity ".concat(entity, " not found"));
         }
 
+        componentList.add(name);
+        this.getComponentMap(name).set(entity, component);
         this.listeners.componentAdded.filter(function (listener) {
           return matchesFilter(name, listener.filter);
         }).forEach(function (listener) {
@@ -270,16 +300,17 @@
 
         var componentList = this.entityComponents.get(entity);
 
-        if (componentList) {
-          var component = this.getComponent(entity, name);
-          this.listeners.componentRemoved.filter(function (listener) {
-            return matchesFilter(name, listener.filter);
-          }).forEach(function (listener) {
-            listener.handler(new Entity(entity, _this2), name, component);
-          });
-          componentList["delete"](name);
+        if (!componentList) {
+          throw new Error("Entity ".concat(entity, " not found"));
         }
 
+        var component = this.getComponent(entity, name);
+        this.listeners.componentRemoved.filter(function (listener) {
+          return matchesFilter(name, listener.filter);
+        }).forEach(function (listener) {
+          listener.handler(new Entity(entity, _this2), name, component);
+        });
+        componentList["delete"](name);
         this.getComponentMap(name)["delete"](entity);
       }
     }, {
@@ -315,41 +346,22 @@
     }, {
       key: "getView",
       value: function getView(groupAll) {
-        var _this4 = this;
-
         var groupAny = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
         var view = new View(groupAll, groupAny);
-        this.entityComponents.forEach(function (c, entityID) {
-          var componentArray = Array.from(c);
-          var allComponents = groupAll.filter(function (e) {
-            return componentArray.includes(e);
-          });
-
-          if (allComponents.length !== groupAll.length) {
-            return;
-          }
-
-          var entity = new Entity(entityID, _this4);
-          var searchComponents = groupAny.filter(function (e) {
-            return componentArray.includes(e);
-          }).concat(allComponents);
-          searchComponents.forEach(function (componentName) {
-            var component = _this4.getComponent(entityID, componentName);
-
-            if (component) {
-              view.addComponent(entity, componentName, component);
-            }
-          });
+        this.all().filter(function (entity) {
+          return view.test(entity);
+        }).forEach(function (matchedEntity) {
+          view.addEntity(matchedEntity);
         });
         return view;
       }
     }, {
       key: "all",
       value: function all() {
-        var _this5 = this;
+        var _this4 = this;
 
         return Array.from(this.entityComponents.keys()).map(function (entityId) {
-          return new Entity(entityId, _this5);
+          return new Entity(entityId, _this4);
         });
       }
     }, {
@@ -364,7 +376,7 @@
     }, {
       key: "offComponentAdded",
       value: function offComponentAdded(listener) {
-        this.listeners.componentAdded = this.listeners.componentRemoved.filter(function (l) {
+        this.listeners.componentAdded = this.listeners.componentAdded.filter(function (l) {
           return l.handler !== listener;
         });
       }

@@ -72,10 +72,12 @@ export class Registry<C = {}> {
 
   public assignComponent<T extends keyof C>(entity: EntityID, name: T, component: C[T]): C[T] {
     const componentList = this.entityComponents.get(entity);
-    if (componentList) {
-      componentList.add(name);
-      this.getComponentMap(name).set(entity, component);
+    if (!componentList) {
+      throw new Error(`Entity ${entity} not found`);
     }
+
+    componentList.add(name);
+    this.getComponentMap(name).set(entity, component);
 
     this.listeners.componentAdded
       .filter((listener) => matchesFilter(name, listener.filter))
@@ -88,16 +90,19 @@ export class Registry<C = {}> {
 
   public removeComponent(entity: EntityID, name: keyof C): void {
     const componentList = this.entityComponents.get(entity);
-    if (componentList) {
-      const component = this.getComponent(entity, name);
-      this.listeners.componentRemoved
-        .filter((listener) => matchesFilter(name, listener.filter))
-        .forEach((listener) => {
-          listener.handler(new Entity(entity, this), name, component);
-        });
-
-      componentList.delete(name);
+    if (!componentList) {
+      throw new Error(`Entity ${entity} not found`);
     }
+
+    const component = this.getComponent(entity, name);
+    this.listeners.componentRemoved
+      .filter((listener) => matchesFilter(name, listener.filter))
+      .forEach((listener) => {
+        listener.handler(new Entity(entity, this), name, component);
+      });
+
+    componentList.delete(name);
+
     this.getComponentMap(name).delete(entity);
   }
 
@@ -128,23 +133,12 @@ export class Registry<C = {}> {
 
   public getView(groupAll: ComponentGroup<C>, groupAny: ComponentGroup<C> = []): View<C> {
     const view = new View(groupAll, groupAny);
-    this.entityComponents.forEach((c, entityID) => {
-      const componentArray = Array.from(c);
-      const allComponents = groupAll.filter((e) => componentArray.includes(e));
-      if (allComponents.length !== groupAll.length) {
-        return;
-      }
 
-      const entity = new Entity(entityID, this);
-      const searchComponents = groupAny.filter((e) => componentArray.includes(e))
-        .concat(allComponents);
-      searchComponents.forEach((componentName) => {
-        const component = this.getComponent(entityID, componentName);
-        if (component) {
-          view.addComponent(entity, componentName, component);
-        }
+    this.all()
+      .filter((entity) => view.test(entity))
+      .forEach((matchedEntity) => {
+        view.addEntity(matchedEntity);
       });
-    });
 
     return view;
   }
@@ -165,7 +159,7 @@ export class Registry<C = {}> {
 
   public offComponentAdded(listener: ComponentListener<C, keyof C>) {
     this.listeners.componentAdded = this.listeners
-      .componentRemoved.filter((l) => l.handler !== listener);
+      .componentAdded.filter((l) => l.handler !== listener);
   }
 
   public onComponentRemoved(

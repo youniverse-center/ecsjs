@@ -37,13 +37,22 @@ class View {
         this.groupAll = groupAll;
         this.groupAny = groupAny;
     }
-    addComponent(entity, componentName, component) {
-        let entityMap = this.resultMap.get(entity);
-        if (!entityMap) {
-            entityMap = new Map();
-            this.resultMap.set(entity, entityMap);
-        }
-        entityMap.set(componentName, component);
+    test(entity) {
+        const componentList = entity.components();
+        const matchedComponents = this.groupAll.filter((e) => componentList.includes(e));
+        return matchedComponents.length === this.groupAll.length;
+    }
+    addEntity(entity) {
+        const entityMap = new Map();
+        this.resultMap.set(entity, entityMap);
+        [...this.groupAll, ...this.groupAny].forEach((name) => {
+            if (entity.hasComponent(name)) {
+                entityMap.set(name, entity.getComponent(name));
+            }
+        });
+    }
+    hasEntity(entity) {
+        return this.resultMap.has(entity);
     }
     get result() {
         const r = [];
@@ -110,10 +119,11 @@ class Registry {
     }
     assignComponent(entity, name, component) {
         const componentList = this.entityComponents.get(entity);
-        if (componentList) {
-            componentList.add(name);
-            this.getComponentMap(name).set(entity, component);
+        if (!componentList) {
+            throw new Error(`Entity ${entity} not found`);
         }
+        componentList.add(name);
+        this.getComponentMap(name).set(entity, component);
         this.listeners.componentAdded
             .filter((listener) => matchesFilter(name, listener.filter))
             .forEach((listener) => {
@@ -123,15 +133,16 @@ class Registry {
     }
     removeComponent(entity, name) {
         const componentList = this.entityComponents.get(entity);
-        if (componentList) {
-            const component = this.getComponent(entity, name);
-            this.listeners.componentRemoved
-                .filter((listener) => matchesFilter(name, listener.filter))
-                .forEach((listener) => {
-                listener.handler(new Entity(entity, this), name, component);
-            });
-            componentList.delete(name);
+        if (!componentList) {
+            throw new Error(`Entity ${entity} not found`);
         }
+        const component = this.getComponent(entity, name);
+        this.listeners.componentRemoved
+            .filter((listener) => matchesFilter(name, listener.filter))
+            .forEach((listener) => {
+            listener.handler(new Entity(entity, this), name, component);
+        });
+        componentList.delete(name);
         this.getComponentMap(name).delete(entity);
     }
     getComponent(entityId, name) {
@@ -156,21 +167,10 @@ class Registry {
     }
     getView(groupAll, groupAny = []) {
         const view = new View(groupAll, groupAny);
-        this.entityComponents.forEach((c, entityID) => {
-            const componentArray = Array.from(c);
-            const allComponents = groupAll.filter((e) => componentArray.includes(e));
-            if (allComponents.length !== groupAll.length) {
-                return;
-            }
-            const entity = new Entity(entityID, this);
-            const searchComponents = groupAny.filter((e) => componentArray.includes(e))
-                .concat(allComponents);
-            searchComponents.forEach((componentName) => {
-                const component = this.getComponent(entityID, componentName);
-                if (component) {
-                    view.addComponent(entity, componentName, component);
-                }
-            });
+        this.all()
+            .filter((entity) => view.test(entity))
+            .forEach((matchedEntity) => {
+            view.addEntity(matchedEntity);
         });
         return view;
     }
@@ -185,7 +185,7 @@ class Registry {
     }
     offComponentAdded(listener) {
         this.listeners.componentAdded = this.listeners
-            .componentRemoved.filter((l) => l.handler !== listener);
+            .componentAdded.filter((l) => l.handler !== listener);
     }
     onComponentRemoved(listener, filter = []) {
         this.listeners.componentRemoved.push({

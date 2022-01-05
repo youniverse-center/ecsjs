@@ -3,3 +3,4 @@
 jest.config.js
 rollup.config.mjs
 dist
+coverage
