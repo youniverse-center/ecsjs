@@ -4,9 +4,9 @@ import type { RegistryListeners, ComponentListener, EntityListener } from './Reg
 
 const matchesFilter = <T>(name: T, filter: T[]): boolean => !filter.length || filter.includes(name);
 
-type CreateEntityOptions<C> = Partial<{
+type CreateEntityComponents<C> = Partial<{
   [K in keyof C]: C[K]
-}>; 
+}>;
 
 export class Registry<C = {}> {
   private entityComponents = new Map<EntityID, Set<keyof C>>();
@@ -30,7 +30,7 @@ export class Registry<C = {}> {
     return this.components.get(componentName);
   }
 
-  public createEntity(components: CreateEntityOptions<C> = {}): Entity<C> {
+  public createEntity(components: CreateEntityComponents<C> = {}): Entity<C> {
     const entity = new Entity(this.nextEntity, this);
     this.nextEntity += 1;
     this.entityComponents.set(entity.id, new Set());
@@ -39,11 +39,13 @@ export class Registry<C = {}> {
       listener(entity);
     });
 
-    for (let componentName in components) {
-      if (Object.prototype.hasOwnProperty.call(components, componentName)) {
-        entity.addComponent(componentName, components[componentName]!);
-      }
-    }
+    const componentEntries = Object.entries(components) as {
+      [K in keyof C]: [K, C[K]]
+    }[keyof C][];
+
+    componentEntries.forEach(([name, value]) => {
+      entity.addComponent(name, value);
+    });
 
     return entity;
   }
@@ -153,13 +155,14 @@ export class Registry<C = {}> {
     filter: (keyof C)[] = [],
   ): void {
     this.listeners.componentAdded.push({
-      filter: filter,
+      filter,
       handler: listener,
     });
   }
 
   public offComponentAdded(listener: ComponentListener<C, keyof C>) {
-    this.listeners.componentAdded = this.listeners.componentRemoved.filter((l) => l.handler !== listener);
+    this.listeners.componentAdded = this.listeners
+      .componentRemoved.filter((l) => l.handler !== listener);
   }
 
   public onComponentRemoved(
@@ -167,13 +170,14 @@ export class Registry<C = {}> {
     filter: (keyof C)[] = [],
   ) {
     this.listeners.componentRemoved.push({
-      filter: filter,
+      filter,
       handler: listener,
     });
   }
 
   public offComponentRemoved(listener: ComponentListener<C, keyof C>) {
-    this.listeners.componentRemoved = this.listeners.componentRemoved.filter((l) => l.handler !== listener);
+    this.listeners.componentRemoved = this.listeners
+      .componentRemoved.filter((l) => l.handler !== listener);
   }
 
   public onEntityCreated(listener: EntityListener<C>): void {
@@ -181,7 +185,8 @@ export class Registry<C = {}> {
   }
 
   public offEntityCreated(handler: EntityListener<C>) {
-    this.listeners.entityCreated = this.listeners.entityCreated.filter((listener) => listener !== handler);
+    this.listeners.entityCreated = this.listeners
+      .entityCreated.filter((listener) => listener !== handler);
   }
 
   public onEntityRemoved(listener: EntityListener<C>): void {
@@ -189,7 +194,8 @@ export class Registry<C = {}> {
   }
 
   public offEntityRemoved(handler: EntityListener<C>) {
-    this.listeners.entityRemoved = this.listeners.entityRemoved.filter((listener) => listener !== handler);
+    this.listeners.entityRemoved = this.listeners
+      .entityRemoved.filter((listener) => listener !== handler);
   }
 }
 

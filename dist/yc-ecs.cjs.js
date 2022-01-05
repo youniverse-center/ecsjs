@@ -86,11 +86,10 @@ class Registry {
         this.listeners.entityCreated.forEach((listener) => {
             listener(entity);
         });
-        for (let componentName in components) {
-            if (Object.prototype.hasOwnProperty.call(components, componentName)) {
-                entity.addComponent(componentName, components[componentName]);
-            }
-        }
+        const componentEntries = Object.entries(components);
+        componentEntries.forEach(([name, value]) => {
+            entity.addComponent(name, value);
+        });
         return entity;
     }
     getEntity(entity) {
@@ -177,33 +176,37 @@ class Registry {
     }
     onComponentAdded(listener, filter = []) {
         this.listeners.componentAdded.push({
-            filter: filter,
+            filter,
             handler: listener,
         });
     }
     offComponentAdded(listener) {
-        this.listeners.componentAdded = this.listeners.componentRemoved.filter((l) => l.handler !== listener);
+        this.listeners.componentAdded = this.listeners
+            .componentRemoved.filter((l) => l.handler !== listener);
     }
     onComponentRemoved(listener, filter = []) {
         this.listeners.componentRemoved.push({
-            filter: filter,
+            filter,
             handler: listener,
         });
     }
     offComponentRemoved(listener) {
-        this.listeners.componentRemoved = this.listeners.componentRemoved.filter((l) => l.handler !== listener);
+        this.listeners.componentRemoved = this.listeners
+            .componentRemoved.filter((l) => l.handler !== listener);
     }
     onEntityCreated(listener) {
         this.listeners.entityCreated.push(listener);
     }
     offEntityCreated(handler) {
-        this.listeners.entityCreated = this.listeners.entityCreated.filter((listener) => listener !== handler);
+        this.listeners.entityCreated = this.listeners
+            .entityCreated.filter((listener) => listener !== handler);
     }
     onEntityRemoved(listener) {
         this.listeners.entityRemoved.push(listener);
     }
     offEntityRemoved(handler) {
-        this.listeners.entityRemoved = this.listeners.entityRemoved.filter((listener) => listener !== handler);
+        this.listeners.entityRemoved = this.listeners
+            .entityRemoved.filter((listener) => listener !== handler);
     }
 }
 const createRegistry$1 = () => new Registry();

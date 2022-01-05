@@ -54,18 +54,18 @@ describe('Registry', () => {
   test('triggers component added listener when creating entity with component', () => {
     let triggeredListener = false;
     registry.onComponentAdded((entity, name, component) => {
-      triggeredListener = entity.id === 1 
-        && name === 'Name' 
+      triggeredListener = entity.id === 1
+        && name === 'Name'
         && (component as Components['Name']).value === 'Some other entity';
     });
-    
+
     registry.createEntity({
       Name: {
         value: 'Some other entity',
       },
     });
 
-    expect(triggeredListener).toBe(true);    
+    expect(triggeredListener).toBe(true);
   });
 
   test('triggers component added listener when creating entity with component after entity created listener', () => {
@@ -77,14 +77,14 @@ describe('Registry', () => {
     registry.onEntityCreated((entity) => {
       entityCreatedTriggered = entity.id === 1;
     });
-    
+
     registry.createEntity({
       Name: {
         value: 'Some awesome entity',
       },
     });
 
-    expect(triggeredSecond).toBe(true);    
+    expect(triggeredSecond).toBe(true);
   });
 
   test('removes component added listener', () => {
