@@ -1,12 +1,13 @@
 {
   "name": "@youniverse-center/ecsjs",
-  "version": "1.3.1",
+  "version": "1.3.6",
   "description": "The Entity Component System for JavaScript",
-  "main": "dist/yc-ecs.cjs.js",
-  "module": "dist/yc-ecs.esm.js",
+  "main": "dist/yc-ecs-transpiled.cjs.js",
+  "module": "dist/yc-ecs-transpiled.esm.js",
   "types": "dist/yc-ecs.d.ts",
   "scripts": {
     "prebuild": "rm -rf dist @types",
+    "lint": "eslint .",
     "build": "rollup -c",
     "postbuild": "rm -rf @types",
     "docs:dev": "vuepress dev docs",

@@ -9,7 +9,7 @@
       "module": "ESNext",
       "target": "ESNext",
       "allowJs": false,
-      "sourceMap": false,
+      "sourceMap": true,
       "esModuleInterop": true,
       "baseUrl": ".",
       "moduleResolution": "node",

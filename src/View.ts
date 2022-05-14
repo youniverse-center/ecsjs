@@ -11,16 +11,28 @@ type ViewResult<C> = {
 export default class View<C> {
   private resultMap = new Map<Entity<C>, Map<keyof C, C[keyof C]>>();
 
-  constructor(public groupAll: ComponentGroup<C>, public groupAny: ComponentGroup<C>) {}
+  constructor(private groupAll: ComponentGroup<C>, private groupAny: ComponentGroup<C>) {}
 
-  public addComponent<T extends keyof C>(entity: Entity<C>, componentName: T, component: C[T]) {
-    let entityMap = this.resultMap.get(entity);
-    if (!entityMap) {
-      entityMap = new Map<T, C[T]>();
-      this.resultMap.set(entity, entityMap);
-    }
+  public test(entity: Entity<C>): boolean {
+    const componentList = entity.components();
+    const matchedComponents = this.groupAll.filter((e) => componentList.includes(e));
 
-    entityMap.set(componentName, component);
+    return matchedComponents.length === this.groupAll.length;
+  }
+
+  public addEntity(entity: Entity<C>): void {
+    const entityMap = new Map<keyof C, C[keyof C]>();
+    this.resultMap.set(entity, entityMap);
+
+    [...this.groupAll, ...this.groupAny].forEach((name) => {
+      if (entity.hasComponent(name)) {
+        entityMap.set(name, entity.getComponent(name));
+      }
+    });
+  }
+
+  public hasEntity(entity: Entity<C>): boolean {
+    return this.resultMap.has(entity);
   }
 
   public get result() {

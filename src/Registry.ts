@@ -1,9 +1,12 @@
 import Entity, { EntityID } from './Entity';
 import View, { ComponentGroup } from './View';
-import type { RegistryListeners, ComponentListener } from './RegistryListeners';
-import { EntityListener } from 'src';
+import type { RegistryListeners, ComponentListener, EntityListener } from './RegistryListeners';
 
 const matchesFilter = <T>(name: T, filter: T[]): boolean => !filter.length || filter.includes(name);
+
+type CreateEntityComponents<C> = Partial<{
+  [K in keyof C]: C[K]
+}>;
 
 export class Registry<C = {}> {
   private entityComponents = new Map<EntityID, Set<keyof C>>();
@@ -28,7 +31,7 @@ export class Registry<C = {}> {
     return this.components.get(componentName);
   }
 
-  public createEntity(): Entity<C> {
+  public createEntity(components: CreateEntityComponents<C> = {}): Entity<C> {
     const entity = new Entity(this.nextEntity, this);
     this.nextEntity += 1;
     this.entityComponents.set(entity.id, new Set());
@@ -37,10 +40,21 @@ export class Registry<C = {}> {
       listener(entity);
     });
 
+    const componentEntries = Object.entries(components) as {
+      [K in keyof C]: [K, C[K]]
+    }[keyof C][];
+
+    componentEntries.forEach(([name, value]) => {
+      entity.addComponent(name, value);
+    });
+
     return entity;
   }
 
   public getEntity(entity: EntityID) {
+    if (!this.entityComponents.has(entity)) {
+      throw new Error(`Entity ${entity} not found`);
+    }
     return new Entity(entity, this);
   }
 
@@ -59,10 +73,12 @@ export class Registry<C = {}> {
 
   public assignComponent<T extends keyof C>(entity: EntityID, name: T, component: C[T]): C[T] {
     const componentList = this.entityComponents.get(entity);
-    if (componentList) {
-      componentList.add(name);
-      this.getComponentMap(name).set(entity, component);
+    if (!componentList) {
+      throw new Error(`Entity ${entity} not found`);
     }
+
+    componentList.add(name);
+    this.getComponentMap(name).set(entity, component);
 
     this.listeners.componentAdded
       .filter((listener) => matchesFilter(name, listener.filter))
@@ -74,18 +90,21 @@ export class Registry<C = {}> {
   }
 
   public removeComponent(entity: EntityID, name: keyof C): void {
-    const component = this.getComponent(entity, name);
     const componentList = this.entityComponents.get(entity);
-    if (componentList) {
-      this.listeners.componentRemoved
-        .filter((listener) => matchesFilter(name, listener.filter))
-        .forEach((listener) => {
-          listener.handler(new Entity(entity, this), name, component);
-        });
-
-      componentList.delete(name);
+    if (!componentList) {
+      throw new Error(`Entity ${entity} not found`);
     }
+
+    const component = this.getComponent(entity, name);
+    this.listeners.componentRemoved
+      .filter((listener) => matchesFilter(name, listener.filter))
+      .forEach((listener) => {
+        listener.handler(new Entity(entity, this), name, component);
+      });
+
+    componentList.delete(name);
     this.getComponentMap(name).delete(entity);
+
     this.listeners.afterComponentRemoved
       .filter((listener) => matchesFilter(name, listener.filter))
       .forEach((listener) => {
@@ -120,23 +139,12 @@ export class Registry<C = {}> {
 
   public getView(groupAll: ComponentGroup<C>, groupAny: ComponentGroup<C> = []): View<C> {
     const view = new View(groupAll, groupAny);
-    this.entityComponents.forEach((c, entityID) => {
-      const componentArray = Array.from(c);
-      const allComponents = groupAll.filter((e) => componentArray.includes(e));
-      if (allComponents.length !== groupAll.length) {
-        return;
-      }
 
-      const entity = new Entity(entityID, this);
-      const searchComponents = groupAny.filter((e) => componentArray.includes(e))
-        .concat(allComponents);
-      searchComponents.forEach((componentName) => {
-        const component = this.getComponent(entityID, componentName);
-        if (component) {
-          view.addComponent(entity, componentName, component);
-        }
+    this.all()
+      .filter((entity) => view.test(entity))
+      .forEach((matchedEntity) => {
+        view.addEntity(matchedEntity);
       });
-    });
 
     return view;
   }
@@ -144,19 +152,21 @@ export class Registry<C = {}> {
   public all(): Entity<C>[] {
     return Array.from(this.entityComponents.keys()).map((entityId) => new Entity(entityId, this));
   }
-  
+
   public onAfterComponentRemoved(
     listener: ComponentListener<C, keyof C>,
     filter: (keyof C)[] = [],
   ): void {
     this.listeners.afterComponentRemoved.push({
-      filter: filter,
+      filter,
       handler: listener,
     });
   }
 
   public offAfterComponentRemoved(listener: ComponentListener<C, keyof C>) {
-    this.listeners.afterComponentRemoved = this.listeners.afterComponentRemoved.filter((l) => l.handler !== listener);
+    this.listeners.afterComponentRemoved = this.listeners.afterComponentRemoved.filter((l) => (
+      l.handler !== listener
+    ));
   }
 
   public onComponentAdded(
@@ -164,13 +174,14 @@ export class Registry<C = {}> {
     filter: (keyof C)[] = [],
   ): void {
     this.listeners.componentAdded.push({
-      filter: filter,
+      filter,
       handler: listener,
     });
   }
 
   public offComponentAdded(listener: ComponentListener<C, keyof C>) {
-    this.listeners.componentAdded = this.listeners.componentRemoved.filter((l) => l.handler !== listener);
+    this.listeners.componentAdded = this.listeners
+      .componentAdded.filter((l) => l.handler !== listener);
   }
 
   public onComponentRemoved(
@@ -178,13 +189,14 @@ export class Registry<C = {}> {
     filter: (keyof C)[] = [],
   ) {
     this.listeners.componentRemoved.push({
-      filter: filter,
+      filter,
       handler: listener,
     });
   }
 
   public offComponentRemoved(listener: ComponentListener<C, keyof C>) {
-    this.listeners.componentRemoved = this.listeners.componentRemoved.filter((l) => l.handler !== listener);
+    this.listeners.componentRemoved = this.listeners
+      .componentRemoved.filter((l) => l.handler !== listener);
   }
 
   public onEntityCreated(listener: EntityListener<C>): void {
@@ -192,7 +204,8 @@ export class Registry<C = {}> {
   }
 
   public offEntityCreated(handler: EntityListener<C>) {
-    this.listeners.entityCreated = this.listeners.entityCreated.filter((listener) => listener !== handler);
+    this.listeners.entityCreated = this.listeners
+      .entityCreated.filter((listener) => listener !== handler);
   }
 
   public onEntityRemoved(listener: EntityListener<C>): void {
@@ -200,7 +213,8 @@ export class Registry<C = {}> {
   }
 
   public offEntityRemoved(handler: EntityListener<C>) {
-    this.listeners.entityRemoved = this.listeners.entityRemoved.filter((listener) => listener !== handler);
+    this.listeners.entityRemoved = this.listeners
+      .entityRemoved.filter((listener) => listener !== handler);
   }
 }
 

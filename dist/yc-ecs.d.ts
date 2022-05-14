@@ -1,5 +1,3 @@
-import { EntityListener as EntityListener$1 } from 'src';
-
 declare type EntityID = number;
 declare class Entity<C> {
     private entityId;
@@ -20,11 +18,13 @@ declare type ViewResult<C> = {
     hasComponent: (name: keyof C) => boolean;
 };
 declare class View<C> {
-    groupAll: ComponentGroup<C>;
-    groupAny: ComponentGroup<C>;
+    private groupAll;
+    private groupAny;
     private resultMap;
     constructor(groupAll: ComponentGroup<C>, groupAny: ComponentGroup<C>);
-    addComponent<T extends keyof C>(entity: Entity<C>, componentName: T, component: C[T]): void;
+    test(entity: Entity<C>): boolean;
+    addEntity(entity: Entity<C>): void;
+    hasEntity(entity: Entity<C>): boolean;
     get result(): ViewResult<C>[];
 }
 
@@ -38,13 +38,16 @@ declare type RegistryListenerTypes<C> = {
 };
 declare type RegistryListener<C, T extends keyof RegistryListenerTypes<C>> = RegistryListenerTypes<C>[T];
 
+declare type CreateEntityComponents<C> = Partial<{
+    [K in keyof C]: C[K];
+}>;
 declare class Registry<C = {}> {
     private entityComponents;
     private components;
     private nextEntity;
     private listeners;
     private getComponentMap;
-    createEntity(): Entity<C>;
+    createEntity(components?: CreateEntityComponents<C>): Entity<C>;
     getEntity(entity: EntityID): Entity<C>;
     getComponents(entity: EntityID): (keyof C)[];
     hasComponent(entity: EntityID, name: keyof C): boolean;
@@ -60,10 +63,10 @@ declare class Registry<C = {}> {
     offComponentAdded(listener: ComponentListener<C, keyof C>): void;
     onComponentRemoved(listener: ComponentListener<C, keyof C>, filter?: (keyof C)[]): void;
     offComponentRemoved(listener: ComponentListener<C, keyof C>): void;
-    onEntityCreated(listener: EntityListener$1<C>): void;
-    offEntityCreated(handler: EntityListener$1<C>): void;
-    onEntityRemoved(listener: EntityListener$1<C>): void;
-    offEntityRemoved(handler: EntityListener$1<C>): void;
+    onEntityCreated(listener: EntityListener<C>): void;
+    offEntityCreated(handler: EntityListener<C>): void;
+    onEntityRemoved(listener: EntityListener<C>): void;
+    offEntityRemoved(handler: EntityListener<C>): void;
 }
 
 declare const createRegistry: <C>() => Registry<C>;

@@ -26,6 +26,81 @@
     return Constructor;
   }
 
+  function _slicedToArray(arr, i) {
+    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
+  }
+
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+  }
+
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+  }
+
+  function _arrayWithHoles(arr) {
+    if (Array.isArray(arr)) return arr;
+  }
+
+  function _iterableToArray(iter) {
+    if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+  }
+
+  function _iterableToArrayLimit(arr, i) {
+    var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+
+    if (_i == null) return;
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+
+    var _s, _e;
+
+    try {
+      for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"] != null) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  function _unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === "Object" && o.constructor) n = o.constructor.name;
+    if (n === "Map" || n === "Set") return Array.from(o);
+    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+  }
+
+  function _arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
+
+    for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+    return arr2;
+  }
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
+  function _nonIterableRest() {
+    throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
   var Entity = /*#__PURE__*/function () {
     function Entity(entityId, registry) {
       _classCallCheck(this, Entity);
@@ -79,16 +154,29 @@
     }
 
     _createClass(View, [{
-      key: "addComponent",
-      value: function addComponent(entity, componentName, component) {
-        var entityMap = this.resultMap.get(entity);
-
-        if (!entityMap) {
-          entityMap = new Map();
-          this.resultMap.set(entity, entityMap);
-        }
-
-        entityMap.set(componentName, component);
+      key: "test",
+      value: function test(entity) {
+        var componentList = entity.components();
+        var matchedComponents = this.groupAll.filter(function (e) {
+          return componentList.includes(e);
+        });
+        return matchedComponents.length === this.groupAll.length;
+      }
+    }, {
+      key: "addEntity",
+      value: function addEntity(entity) {
+        var entityMap = new Map();
+        this.resultMap.set(entity, entityMap);
+        [].concat(_toConsumableArray(this.groupAll), _toConsumableArray(this.groupAny)).forEach(function (name) {
+          if (entity.hasComponent(name)) {
+            entityMap.set(name, entity.getComponent(name));
+          }
+        });
+      }
+    }, {
+      key: "hasEntity",
+      value: function hasEntity(entity) {
+        return this.resultMap.has(entity);
       }
     }, {
       key: "result",
@@ -124,7 +212,6 @@
       this.components = new Map();
       this.nextEntity = 1;
       this.listeners = {
-        afterComponentRemoved: [],
         componentAdded: [],
         componentRemoved: [],
         entityCreated: [],
@@ -144,17 +231,30 @@
     }, {
       key: "createEntity",
       value: function createEntity() {
+        var components = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
         var entity = new Entity(this.nextEntity, this);
         this.nextEntity += 1;
         this.entityComponents.set(entity.id, new Set());
         this.listeners.entityCreated.forEach(function (listener) {
           listener(entity);
         });
+        var componentEntries = Object.entries(components);
+        componentEntries.forEach(function (_ref) {
+          var _ref2 = _slicedToArray(_ref, 2),
+              name = _ref2[0],
+              value = _ref2[1];
+
+          entity.addComponent(name, value);
+        });
         return entity;
       }
     }, {
       key: "getEntity",
       value: function getEntity(entity) {
+        if (!this.entityComponents.has(entity)) {
+          throw new Error("Entity ".concat(entity, " not found"));
+        }
+
         return new Entity(entity, this);
       }
     }, {
@@ -180,11 +280,12 @@
 
         var componentList = this.entityComponents.get(entity);
 
-        if (componentList) {
-          componentList.add(name);
-          this.getComponentMap(name).set(entity, component);
+        if (!componentList) {
+          throw new Error("Entity ".concat(entity, " not found"));
         }
 
+        componentList.add(name);
+        this.getComponentMap(name).set(entity, component);
         this.listeners.componentAdded.filter(function (listener) {
           return matchesFilter(name, listener.filter);
         }).forEach(function (listener) {
@@ -197,24 +298,20 @@
       value: function removeComponent(entity, name) {
         var _this2 = this;
 
-        var component = this.getComponent(entity, name);
         var componentList = this.entityComponents.get(entity);
 
-        if (componentList) {
-          this.listeners.componentRemoved.filter(function (listener) {
-            return matchesFilter(name, listener.filter);
-          }).forEach(function (listener) {
-            listener.handler(new Entity(entity, _this2), name, component);
-          });
-          componentList["delete"](name);
+        if (!componentList) {
+          throw new Error("Entity ".concat(entity, " not found"));
         }
 
-        this.getComponentMap(name)["delete"](entity);
-        this.listeners.afterComponentRemoved.filter(function (listener) {
+        var component = this.getComponent(entity, name);
+        this.listeners.componentRemoved.filter(function (listener) {
           return matchesFilter(name, listener.filter);
         }).forEach(function (listener) {
           listener.handler(new Entity(entity, _this2), name, component);
         });
+        componentList["delete"](name);
+        this.getComponentMap(name)["delete"](entity);
       }
     }, {
       key: "getComponent",
@@ -249,57 +346,22 @@
     }, {
       key: "getView",
       value: function getView(groupAll) {
-        var _this4 = this;
-
         var groupAny = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
         var view = new View(groupAll, groupAny);
-        this.entityComponents.forEach(function (c, entityID) {
-          var componentArray = Array.from(c);
-          var allComponents = groupAll.filter(function (e) {
-            return componentArray.includes(e);
-          });
-
-          if (allComponents.length !== groupAll.length) {
-            return;
-          }
-
-          var entity = new Entity(entityID, _this4);
-          var searchComponents = groupAny.filter(function (e) {
-            return componentArray.includes(e);
-          }).concat(allComponents);
-          searchComponents.forEach(function (componentName) {
-            var component = _this4.getComponent(entityID, componentName);
-
-            if (component) {
-              view.addComponent(entity, componentName, component);
-            }
-          });
+        this.all().filter(function (entity) {
+          return view.test(entity);
+        }).forEach(function (matchedEntity) {
+          view.addEntity(matchedEntity);
         });
         return view;
       }
     }, {
       key: "all",
       value: function all() {
-        var _this5 = this;
+        var _this4 = this;
 
         return Array.from(this.entityComponents.keys()).map(function (entityId) {
-          return new Entity(entityId, _this5);
-        });
-      }
-    }, {
-      key: "onAfterComponentRemoved",
-      value: function onAfterComponentRemoved(listener) {
-        var filter = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-        this.listeners.afterComponentRemoved.push({
-          filter: filter,
-          handler: listener
-        });
-      }
-    }, {
-      key: "offAfterComponentRemoved",
-      value: function offAfterComponentRemoved(listener) {
-        this.listeners.afterComponentRemoved = this.listeners.afterComponentRemoved.filter(function (l) {
-          return l.handler !== listener;
+          return new Entity(entityId, _this4);
         });
       }
     }, {
@@ -314,7 +376,7 @@
     }, {
       key: "offComponentAdded",
       value: function offComponentAdded(listener) {
-        this.listeners.componentAdded = this.listeners.componentRemoved.filter(function (l) {
+        this.listeners.componentAdded = this.listeners.componentAdded.filter(function (l) {
           return l.handler !== listener;
         });
       }

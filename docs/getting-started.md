@@ -80,6 +80,20 @@ const nameComponent = ecs.assignComponent(entity.id, 'Name', {
 nameComponent.value = 'More than awesome entity';
 ```
 
+::: tip
+From version 1.3.2 you can assign components when creating entity like this:
+```typescript
+entity = ecs.createEntity({
+  Tags: {
+    tags: ['awesomness']
+  },
+  Name: {
+    value: 'Some awesome entity'
+  }
+});
+```
+:::
+
 ## Query the registry
 
 To get entities with specific components use `getView(allComponents: ComponentGroup, anyComponents: ComponentGroup): View`

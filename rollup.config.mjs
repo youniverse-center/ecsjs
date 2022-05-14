@@ -7,32 +7,59 @@ import { babel } from "@rollup/plugin-babel";
 
 export default defineConfig([
   {
-    plugins: [eslint({
-      throwOnError: true,
-    }), typescript({
-      tsconfig: 'tsconfig.build.json',
-      useTsconfigDeclarationDir: true
-    }), babel({
-      babelHelpers: 'bundled',
-      extensions: ['.js', '.ts']
-    })],
+    plugins: [
+        eslint({
+        throwOnError: true,
+      }),
+      typescript({
+        tsconfig: 'tsconfig.build.json',
+        useTsconfigDeclarationDir: true
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions: ['.js', '.ts']
+      })
+    ],
     input: 'src/index.ts',
-    output: [...(['esm', 'cjs'].map((format) => ({
-      format,
-      file: `dist/yc-ecs.${format}.js`
-    })))]
+    output: [
+      ...(['esm', 'cjs'].map((format) => ({
+        format,
+        file: `dist/yc-ecs-transpiled.${format}.js`
+      })))
+    ]
   },
   {
-    plugins: [eslint({
-      throwOnError: true,
-    }), typescript({
-      tsconfig: 'tsconfig.build.json',
-      useTsconfigDeclarationDir: true
-    }),
-    babel({
-      babelHelpers: 'bundled',
-      extensions: ['.js', '.ts']
-    })],
+    plugins: [
+        eslint({
+        throwOnError: true,
+      }),
+      typescript({
+        tsconfig: 'tsconfig.build.json',
+        useTsconfigDeclarationDir: true
+      }),
+    ],
+    input: 'src/index.ts',
+    output: [
+      ...(['esm', 'cjs'].map((format) => ({
+        format,
+        file: `dist/yc-ecs.${format}.js`
+      })))
+    ]
+  },
+  {
+    plugins: [
+      eslint({
+        throwOnError: true,
+      }),
+      typescript({
+        tsconfig: 'tsconfig.build.json',
+        useTsconfigDeclarationDir: true
+      }),
+      babel({
+        babelHelpers: 'bundled',
+        extensions: ['.js', '.ts']
+      })
+    ],
     input: 'src/index.ts',
     output: [
       {
