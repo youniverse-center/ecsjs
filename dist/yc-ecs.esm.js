@@ -73,6 +73,7 @@ class Registry {
     components = new Map();
     nextEntity = 1;
     listeners = {
+        afterComponentRemoved: [],
         componentAdded: [],
         componentRemoved: [],
         entityCreated: [],
@@ -140,6 +141,11 @@ class Registry {
         });
         componentList.delete(name);
         this.getComponentMap(name).delete(entity);
+        this.listeners.afterComponentRemoved
+            .filter((listener) => matchesFilter(name, listener.filter))
+            .forEach((listener) => {
+            listener.handler(new Entity(entity, this), name, component);
+        });
     }
     getComponent(entityId, name) {
         const component = this.getComponentMap(name).get(entityId);
@@ -172,6 +178,15 @@ class Registry {
     }
     all() {
         return Array.from(this.entityComponents.keys()).map((entityId) => new Entity(entityId, this));
+    }
+    onAfterComponentRemoved(listener, filter = []) {
+        this.listeners.afterComponentRemoved.push({
+            filter,
+            handler: listener,
+        });
+    }
+    offAfterComponentRemoved(listener) {
+        this.listeners.afterComponentRemoved = this.listeners.afterComponentRemoved.filter((l) => (l.handler !== listener));
     }
     onComponentAdded(listener, filter = []) {
         this.listeners.componentAdded.push({
