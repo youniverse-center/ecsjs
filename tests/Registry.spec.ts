@@ -63,6 +63,25 @@ describe('Registry', () => {
     expect(i).toBe(1);
   });
 
+  test('removes after component removed listener', () => {
+    let i = 0;
+    const listener = () => {
+      i += 1;
+    };
+
+    registry.onAfterComponentRemoved(listener);
+    const entity = registry.createEntity();
+    entity.addComponent('Tag', { name: 'tag' });
+    const entity2 = registry.createEntity();
+    entity2.addComponent('Tag', { name: 'tag' });
+
+    entity.removeComponent('Tag');
+    registry.offAfterComponentRemoved(listener);
+    entity2.removeComponent('Tag');
+
+    expect(i).toBe(1);
+  });
+
   test('removes entity created listener', () => {
     let i = 0;
     const listener = () => {

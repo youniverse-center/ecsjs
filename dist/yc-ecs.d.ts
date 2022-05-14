@@ -54,6 +54,8 @@ declare class Registry<C = {}> {
     removeEntity(entity: EntityID): void;
     getView(groupAll: ComponentGroup<C>, groupAny?: ComponentGroup<C>): View<C>;
     all(): Entity<C>[];
+    onAfterComponentRemoved(listener: ComponentListener<C, keyof C>, filter?: (keyof C)[]): void;
+    offAfterComponentRemoved(listener: ComponentListener<C, keyof C>): void;
     onComponentAdded(listener: ComponentListener<C, keyof C>, filter?: (keyof C)[]): void;
     offComponentAdded(listener: ComponentListener<C, keyof C>): void;
     onComponentRemoved(listener: ComponentListener<C, keyof C>, filter?: (keyof C)[]): void;

@@ -13,6 +13,7 @@ export class Registry<C = {}> {
   private nextEntity: EntityID = 1;
 
   private listeners: RegistryListeners<C> = {
+    afterComponentRemoved: [],
     componentAdded: [],
     componentRemoved: [],
     entityCreated: [],
@@ -73,9 +74,9 @@ export class Registry<C = {}> {
   }
 
   public removeComponent(entity: EntityID, name: keyof C): void {
+    const component = this.getComponent(entity, name);
     const componentList = this.entityComponents.get(entity);
     if (componentList) {
-      const component = this.getComponent(entity, name);
       this.listeners.componentRemoved
         .filter((listener) => matchesFilter(name, listener.filter))
         .forEach((listener) => {
@@ -85,6 +86,11 @@ export class Registry<C = {}> {
       componentList.delete(name);
     }
     this.getComponentMap(name).delete(entity);
+    this.listeners.afterComponentRemoved
+      .filter((listener) => matchesFilter(name, listener.filter))
+      .forEach((listener) => {
+        listener.handler(new Entity(entity, this), name, component);
+      });
   }
 
   public getComponent<T extends keyof C>(entityId: EntityID, name: T): C[T] {
@@ -137,6 +143,20 @@ export class Registry<C = {}> {
 
   public all(): Entity<C>[] {
     return Array.from(this.entityComponents.keys()).map((entityId) => new Entity(entityId, this));
+  }
+  
+  public onAfterComponentRemoved(
+    listener: ComponentListener<C, keyof C>,
+    filter: (keyof C)[] = [],
+  ): void {
+    this.listeners.afterComponentRemoved.push({
+      filter: filter,
+      handler: listener,
+    });
+  }
+
+  public offAfterComponentRemoved(listener: ComponentListener<C, keyof C>) {
+    this.listeners.afterComponentRemoved = this.listeners.afterComponentRemoved.filter((l) => l.handler !== listener);
   }
 
   public onComponentAdded(

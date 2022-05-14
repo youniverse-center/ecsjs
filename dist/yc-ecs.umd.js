@@ -124,6 +124,7 @@
       this.components = new Map();
       this.nextEntity = 1;
       this.listeners = {
+        afterComponentRemoved: [],
         componentAdded: [],
         componentRemoved: [],
         entityCreated: [],
@@ -196,10 +197,10 @@
       value: function removeComponent(entity, name) {
         var _this2 = this;
 
+        var component = this.getComponent(entity, name);
         var componentList = this.entityComponents.get(entity);
 
         if (componentList) {
-          var component = this.getComponent(entity, name);
           this.listeners.componentRemoved.filter(function (listener) {
             return matchesFilter(name, listener.filter);
           }).forEach(function (listener) {
@@ -209,6 +210,11 @@
         }
 
         this.getComponentMap(name)["delete"](entity);
+        this.listeners.afterComponentRemoved.filter(function (listener) {
+          return matchesFilter(name, listener.filter);
+        }).forEach(function (listener) {
+          listener.handler(new Entity(entity, _this2), name, component);
+        });
       }
     }, {
       key: "getComponent",
@@ -278,6 +284,22 @@
 
         return Array.from(this.entityComponents.keys()).map(function (entityId) {
           return new Entity(entityId, _this5);
+        });
+      }
+    }, {
+      key: "onAfterComponentRemoved",
+      value: function onAfterComponentRemoved(listener) {
+        var filter = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+        this.listeners.afterComponentRemoved.push({
+          filter: filter,
+          handler: listener
+        });
+      }
+    }, {
+      key: "offAfterComponentRemoved",
+      value: function offAfterComponentRemoved(listener) {
+        this.listeners.afterComponentRemoved = this.listeners.afterComponentRemoved.filter(function (l) {
+          return l.handler !== listener;
         });
       }
     }, {
