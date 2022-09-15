@@ -1,18 +1,5 @@
 import createRegistry, { Registry } from '../src/Registry';
-
-type Components = {
-  Tag: {
-    name: string
-  },
-  Name: {
-    value: string
-  },
-  Position: {
-    x: number,
-    y: number,
-    z: number
-  }
-};
+import type { Components } from './TestComponents';
 
 describe('Registry', () => {
   let registry: Registry<Components>;

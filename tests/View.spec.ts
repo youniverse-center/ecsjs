@@ -1,19 +1,6 @@
 import View from '../src/View';
 import createRegistry, { Registry } from '../src/Registry';
-
-type Components = {
-  Tag: {
-    name: string
-  },
-  Name: {
-    value: string
-  },
-  Position: {
-    x: number,
-    y: number,
-    z: number
-  }
-};
+import type { Components } from './TestComponents';
 
 describe('View', () => {
   let registry: Registry<Components>;
@@ -71,7 +58,13 @@ describe('View', () => {
     const view = new View<Components>(['Name'], ['Position']);
     view.addEntity(entity);
 
-    expect(view.result.map(({ component }) => [component('Name'), component('Tag'), component('Position')])).toStrictEqual([
+    expect(
+      view.result.map(({ component }) => [
+        component('Name'),
+        component('Tag'),
+        component('Position'),
+      ]),
+    ).toStrictEqual([
       [
         {
           value: 'name',
@@ -95,13 +88,13 @@ describe('View', () => {
     const view = new View<Components>(['Name'], ['Position']);
     view.addEntity(entity);
 
-    expect(view.result.map(({ hasComponent }) => [hasComponent('Name'), hasComponent('Tag'), hasComponent('Position')])).toStrictEqual([
-      [
-        true,
-        false,
-        false,
-      ],
-    ]);
+    expect(
+      view.result.map(({ hasComponent }) => [
+        hasComponent('Name'),
+        hasComponent('Tag'),
+        hasComponent('Position'),
+      ]),
+    ).toStrictEqual([[true, false, false]]);
   });
 
   test('Should return true if entity exists in view', () => {
