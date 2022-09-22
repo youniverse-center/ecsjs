@@ -137,3 +137,54 @@ Don't confuse `component` and `hasComponent` with the methods available on the e
 This components are in the context of the view and will only have components you specifed in the query.
 If you need other components, use methods on the entity wrapper object.
 :::
+
+## Cachable View
+
+::: warning
+This feature is available since version 1.4.0.
+:::
+
+When creating view by `getView()` it won't update it's result. When you want to check if the view has changed (entity with given components were added or removed) you had to query the registry again.
+
+Version 1.4.0 introduce a new `CacheableView` class which listens to component addition or deletion in the registry.
+
+If there was a change in the registry that does not affect the view, view will stay valid and by calling the result the registry won't be queried.
+
+If there is a change that will affect the view, then all view is discarded and will be rebuild when accessing the view results.
+
+***NOTE:** Registry is queried when you call the result property for the first time or the view was discarded, not when creating CacheableView.*
+
+```ts
+import ecs from './ecs';
+import { CacheableView } from '@youniverse-center/ecsjs'
+
+// CacheableView(registry, requiredComponents, optionalComponents)
+const view = new CacheableView(ecs, ['Name'], ['Tags'])
+// registry not queried yet
+
+const entityIdsInView = view.result.map(({ entity }) => entity.id)
+// registry queried for the first time
+
+const viewResultsWithNameAndTags = view.result
+  .filter(({ hasComponent }) => hasComponent('Tags'))
+// registry is not queried again, there was no change
+
+ecs.createEntity({
+  Tags: {
+    tags: ['some tag']
+  }
+})
+
+view.result
+// view is still valid - added entity does not fit in the view - it does
+// not have all required components, the registry won't be queried
+
+ecs.createEntity({
+  Name: {
+    value: 'New entity'
+  }
+})
+// view is invalidated but registry is not queried yet
+
+view.result // query registry for updated results
+```

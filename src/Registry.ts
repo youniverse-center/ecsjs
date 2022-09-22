@@ -115,7 +115,7 @@ export class Registry<C = {}> {
   public getComponent<T extends keyof C>(entityId: EntityID, name: T): C[T] {
     const component = this.getComponentMap(name).get(entityId);
     if (!component) {
-      throw new Error(`Entity ${entityId} does not have component ${name}`);
+      throw new Error(`Entity ${entityId} does not have component ${String(name)}`);
     }
 
     return component;

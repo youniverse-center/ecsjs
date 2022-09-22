@@ -68,7 +68,18 @@ declare class Registry<C = {}> {
     onEntityRemoved(listener: EntityListener<C>): void;
     offEntityRemoved(handler: EntityListener<C>): void;
 }
-
 declare const createRegistry: <C>() => Registry<C>;
 
-export { ComponentGroup, ComponentListener, Entity, EntityListener, Registry, RegistryListener, View, createRegistry };
+declare class CacheableView<T> {
+    private registry;
+    private requiredComponents;
+    private optionalComponents;
+    private view;
+    constructor(registry: Registry<T>, requiredComponents: ComponentGroup<T>, optionalComponents?: ComponentGroup<T>);
+    get result(): ViewResult<T>[];
+    invalidate(): void;
+    private rebuildView;
+    private onEntityChanged;
+}
+
+export { CacheableView, ComponentGroup, ComponentListener, Entity, EntityListener, Registry, RegistryListener, View, createRegistry };

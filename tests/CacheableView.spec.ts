@@ -86,13 +86,13 @@ describe('CacheableView', () => {
       expect(spy).toBeCalled();
     });
 
-    it('should update view when optional component is added to already existing entity in view', () => {
+    it('should not update view when optional component is added to already existing entity in view', () => {
       const spy = jest.spyOn(registry, 'getView');
       registry.getEntity(1).addComponent('Name', {
         value: 'Best entity',
       });
       expect(view.result.map(toEntityId)).toMatchObject([1, 3]);
-      expect(spy).toBeCalled();
+      expect(spy).not.toBeCalled();
     });
   });
 });

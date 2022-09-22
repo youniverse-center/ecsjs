@@ -163,26 +163,30 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "addEntity",
     value: function addEntity(entity) {
-      var entityMap = new Map();
-      this.resultMap.set(entity, entityMap);
+      var componentMap = new Map();
+      this.resultMap.set(entity.id, {
+        entity: entity,
+        componentMap: componentMap
+      });
       [].concat(_toConsumableArray(this.groupAll), _toConsumableArray(this.groupAny)).forEach(function (name) {
         if (entity.hasComponent(name)) {
-          entityMap.set(name, entity.getComponent(name));
+          componentMap.set(name, entity.getComponent(name));
         }
       });
     }
   }, {
     key: "hasEntity",
     value: function hasEntity(entity) {
-      return this.resultMap.has(entity);
+      return this.resultMap.has(entity.id);
     }
   }, {
     key: "result",
     get: function get() {
       var r = [];
-      this.resultMap.forEach(function (components, entity) {
+      this.resultMap.forEach(function (resultEntry) {
+        var components = resultEntry.componentMap;
         r.push({
-          entity: entity,
+          entity: resultEntry.entity,
           component: function component(name) {
             return components.get(name);
           },
@@ -323,7 +327,7 @@ var Registry = /*#__PURE__*/function () {
       var component = this.getComponentMap(name).get(entityId);
 
       if (!component) {
-        throw new Error("Entity ".concat(entityId, " does not have component ").concat(name));
+        throw new Error("Entity ".concat(entityId, " does not have component ").concat(String(name)));
       }
 
       return component;
@@ -445,10 +449,63 @@ var Registry = /*#__PURE__*/function () {
   return Registry;
 }();
 
-var createRegistry$1 = function createRegistry() {
+var createRegistry = function createRegistry() {
   return new Registry();
 };
 
-var createRegistry = createRegistry$1;
+var CacheableView = /*#__PURE__*/function () {
+  function CacheableView(registry, requiredComponents) {
+    var optionalComponents = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 
+    _classCallCheck(this, CacheableView);
+
+    this.view = null;
+    this.registry = registry;
+    this.requiredComponents = requiredComponents;
+    this.optionalComponents = optionalComponents;
+    var viewComponents = [].concat(_toConsumableArray(this.requiredComponents), _toConsumableArray(this.optionalComponents));
+    this.registry.onComponentAdded(this.onEntityChanged.bind(this), viewComponents);
+    this.registry.onAfterComponentRemoved(this.onEntityChanged.bind(this), viewComponents);
+  }
+
+  _createClass(CacheableView, [{
+    key: "result",
+    get: function get() {
+      if (this.view === null) {
+        this.rebuildView();
+      }
+
+      return this.view.result;
+    }
+  }, {
+    key: "invalidate",
+    value: function invalidate() {
+      this.view = null;
+    }
+  }, {
+    key: "rebuildView",
+    value: function rebuildView() {
+      this.view = this.registry.getView(this.requiredComponents, this.optionalComponents);
+    }
+  }, {
+    key: "onEntityChanged",
+    value: function onEntityChanged(entity) {
+      if (this.view === null) {
+        return;
+      }
+
+      var hasAllRequiredComponents = this.requiredComponents.every(function (componentName) {
+        return entity.hasComponent(componentName);
+      });
+
+      if (hasAllRequiredComponents && !this.view.hasEntity(entity) || !hasAllRequiredComponents && this.view.hasEntity(entity)) {
+        this.invalidate();
+      }
+    }
+  }]);
+
+  return CacheableView;
+}();
+
+exports.CacheableView = CacheableView;
 exports.createRegistry = createRegistry;

@@ -45,7 +45,7 @@ export default class CacheableView<T> {
     ));
 
     if (
-      (hasAllRequiredComponents)
+      (hasAllRequiredComponents && !this.view!.hasEntity(entity))
       || (!hasAllRequiredComponents && this.view!.hasEntity(entity))
     ) {
       this.invalidate();

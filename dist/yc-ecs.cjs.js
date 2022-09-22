@@ -43,22 +43,26 @@ class View {
         return matchedComponents.length === this.groupAll.length;
     }
     addEntity(entity) {
-        const entityMap = new Map();
-        this.resultMap.set(entity, entityMap);
+        const componentMap = new Map();
+        this.resultMap.set(entity.id, {
+            entity,
+            componentMap,
+        });
         [...this.groupAll, ...this.groupAny].forEach((name) => {
             if (entity.hasComponent(name)) {
-                entityMap.set(name, entity.getComponent(name));
+                componentMap.set(name, entity.getComponent(name));
             }
         });
     }
     hasEntity(entity) {
-        return this.resultMap.has(entity);
+        return this.resultMap.has(entity.id);
     }
     get result() {
         const r = [];
-        this.resultMap.forEach((components, entity) => {
+        this.resultMap.forEach((resultEntry) => {
+            const components = resultEntry.componentMap;
             r.push({
-                entity,
+                entity: resultEntry.entity,
                 component(name) {
                     return components.get(name);
                 },
@@ -154,7 +158,7 @@ class Registry {
     getComponent(entityId, name) {
         const component = this.getComponentMap(name).get(entityId);
         if (!component) {
-            throw new Error(`Entity ${entityId} does not have component ${name}`);
+            throw new Error(`Entity ${entityId} does not have component ${String(name)}`);
         }
         return component;
     }
@@ -227,9 +231,47 @@ class Registry {
             .entityRemoved.filter((listener) => listener !== handler);
     }
 }
-const createRegistry$1 = () => new Registry();
+const createRegistry = () => new Registry();
 
-// eslint-disable-next-line import/prefer-default-export
-const createRegistry = createRegistry$1;
+class CacheableView {
+    registry;
+    requiredComponents;
+    optionalComponents;
+    view = null;
+    constructor(registry, requiredComponents, optionalComponents = []) {
+        this.registry = registry;
+        this.requiredComponents = requiredComponents;
+        this.optionalComponents = optionalComponents;
+        const viewComponents = [
+            ...this.requiredComponents,
+            ...this.optionalComponents,
+        ];
+        this.registry.onComponentAdded(this.onEntityChanged.bind(this), viewComponents);
+        this.registry.onAfterComponentRemoved(this.onEntityChanged.bind(this), viewComponents);
+    }
+    get result() {
+        if (this.view === null) {
+            this.rebuildView();
+        }
+        return this.view.result;
+    }
+    invalidate() {
+        this.view = null;
+    }
+    rebuildView() {
+        this.view = this.registry.getView(this.requiredComponents, this.optionalComponents);
+    }
+    onEntityChanged(entity) {
+        if (this.view === null) {
+            return;
+        }
+        const hasAllRequiredComponents = this.requiredComponents.every((componentName) => (entity.hasComponent(componentName)));
+        if ((hasAllRequiredComponents && !this.view.hasEntity(entity))
+            || (!hasAllRequiredComponents && this.view.hasEntity(entity))) {
+            this.invalidate();
+        }
+    }
+}
 
+exports.CacheableView = CacheableView;
 exports.createRegistry = createRegistry;
